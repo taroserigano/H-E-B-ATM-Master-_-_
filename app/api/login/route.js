@@ -14,7 +14,7 @@ export async function POST(req) {
     const cookieStore = await cookies(); // ✅ await is required
     cookieStore.set("session", account, {
       httpOnly: true,
-      secure: false, // ⚠️ Set to false for localhost testing
+      secure: true, // ⚠️ Set to false for localhost testing
       sameSite: "lax",
       path: "/",
       maxAge: 60 * 60, // 1 hour
