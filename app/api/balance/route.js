@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { getAccounts } from "@/lib/db";
 
-export async function GET(request) {
+export async function GET() {
   const cookieStore = await cookies();
   const accountId = cookieStore.get("accountId")?.value;
 

@@ -12,10 +12,12 @@ export default function DepositForm() {
       const res = await fetch("/api/deposit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include", // ✅ important
         body: JSON.stringify({ amount }),
       });
-      if (!res.ok) throw new Error("Deposit failed");
-      return res.json();
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Deposit failed");
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries(["balance"]);
@@ -33,23 +35,26 @@ export default function DepositForm() {
       onSubmit={handleSubmit}
       className="bg-white p-4 rounded shadow w-full max-w-xs"
     >
-      <h2 className="text-lg font-semibold mb-2">Deposit Funds</h2>
+      <h2 className="text-lg font-bold text-gray-800 mb-2">Deposit Funds</h2>
       <input
         type="number"
         step="0.01"
         value={amount}
         onChange={(e) => setAmount(e.target.value)}
         placeholder="Amount"
-        className="w-full p-2 border border-gray-300 rounded mb-2"
+        className="w-full p-2 border border-gray-300 rounded mb-2 text-black placeholder-gray-500"
       />
+
       <button
         type="submit"
-        className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700"
+        className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700 cursor-pointer"
       >
         Deposit
       </button>
       {depositMutation.isError && (
-        <p className="text-sm text-red-500 mt-2">Deposit failed. Try again.</p>
+        <p className="text-sm text-red-500 mt-2">
+          {depositMutation.error.message}
+        </p>
       )}
     </form>
   );
