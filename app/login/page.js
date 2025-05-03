@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useSession } from "@/context/SessionContext";
+import { useSession } from "@/context/session/SessionContext";
 
 export default function LoginPage() {
   const [accountId, setAccountIdInput] = useState("");

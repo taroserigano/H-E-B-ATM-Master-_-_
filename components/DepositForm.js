@@ -1,61 +1,41 @@
 "use client";
-
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useAccount } from "@/context/AccountContext";
 
 export default function DepositForm() {
   const [amount, setAmount] = useState("");
-  const queryClient = useQueryClient();
+  const [error, setError] = useState("");
+  const { deposit } = useAccount();
 
-  const depositMutation = useMutation({
-    mutationFn: async (amount) => {
-      const res = await fetch("/api/deposit", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include", // ✅ important
-        body: JSON.stringify({ amount }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Deposit failed");
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries(["balance"]);
-      setAmount("");
-    },
-  });
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (Number(amount) > 0) depositMutation.mutate(Number(amount));
+  const handleDeposit = async () => {
+    setError("");
+    const value = parseFloat(amount);
+    if (isNaN(value) || value <= 0) {
+      setError("Enter a valid amount.");
+      return;
+    }
+    const success = await deposit(value);
+    if (!success) setError("Deposit failed. Try again.");
+    setAmount("");
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="bg-white p-4 rounded shadow w-full max-w-xs"
-    >
-      <h2 className="text-lg font-bold text-gray-800 mb-2">Deposit Funds</h2>
+    <div className="w-full p-4 bg-white rounded shadow mb-4">
+      <h2 className="text-lg font-bold mb-2">Deposit Funds</h2>
       <input
         type="number"
-        step="0.01"
+        placeholder="Amount"
         value={amount}
         onChange={(e) => setAmount(e.target.value)}
-        placeholder="Amount"
-        className="w-full p-2 border border-gray-300 rounded mb-2 text-black placeholder-gray-500"
+        className="w-full p-2 border rounded mb-2"
       />
-
       <button
-        type="submit"
-        className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700 cursor-pointer"
+        onClick={handleDeposit}
+        className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700 transition"
       >
         Deposit
       </button>
-      {depositMutation.isError && (
-        <p className="text-sm text-red-500 mt-2">
-          {depositMutation.error.message}
-        </p>
-      )}
-    </form>
+      {error && <p className="text-red-600 mt-2">{error}</p>}
+    </div>
   );
 }

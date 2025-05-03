@@ -1,23 +1,13 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useAccount } from "@/context/AccountContext";
 
 export default function Balance() {
-  const { data, error, isLoading } = useQuery({
-    queryKey: ["balance"],
-    queryFn: async () => {
-      const res = await fetch("/api/balance");
-      if (!res.ok) throw new Error("Failed to load balance");
-      return res.json();
-    },
-  });
-
-  if (isLoading) return <p>Loading balance...</p>;
-  if (error) return <p className="text-red-500">Error: {error.message}</p>;
+  const { state } = useAccount();
 
   return (
-    <p className="text-xl text-gray-700 mb-6">
-      Current Balance: <span className="font-semibold">${data.balance}</span>
-    </p>
+    <div className="text-xl font-medium text-gray-800 my-4">
+      Current Balance: ${state.balance.toFixed(2)}
+    </div>
   );
 }

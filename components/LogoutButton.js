@@ -4,7 +4,7 @@ export default function LogoutButton() {
   const handleLogout = async () => {
     const res = await fetch("/api/logout", {
       method: "POST",
-      credentials: "include", // 🔁 ensure cookie is included in request
+      credentials: "include",
     });
 
     if (res.ok) {
