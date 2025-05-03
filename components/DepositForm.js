@@ -1,12 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 export default function DepositForm() {
   const [amount, setAmount] = useState("");
   const [message, setMessage] = useState({ type: "", text: "" });
   const queryClient = useQueryClient();
+
+  // 🧼 Auto-clear message after 3 sec
+  useEffect(() => {
+    if (message.text) {
+      const timer = setTimeout(() => setMessage({ type: "", text: "" }), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [message]);
 
   const mutation = useMutation({
     mutationFn: async (value) => {
@@ -21,6 +29,8 @@ export default function DepositForm() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["accountBalance"] });
+      queryClient.invalidateQueries({ queryKey: ["accountTransactions"] });
+
       setMessage({ type: "success", text: "Deposit successful!" });
       setAmount("");
     },
@@ -53,7 +63,7 @@ export default function DepositForm() {
       <button
         onClick={handleDeposit}
         disabled={mutation.isPending}
-        className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700 transition"
+        className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700 transition font-semibold cursor-pointer"
       >
         {mutation.isPending ? "Depositing..." : "Deposit"}
       </button>

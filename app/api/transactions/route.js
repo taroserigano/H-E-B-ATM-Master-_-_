@@ -1,10 +1,12 @@
-// app/api/account/route.js
-import clientPromise from "@/lib/mongodb";
+// app/api/transactions/route.js
+
+import { connectToDB } from "@/lib/mongoose";
+import Account from "@/models/Account";
 import { cookies } from "next/headers";
 
 export async function GET() {
   try {
-    const cookieStore = await cookies();
+    const cookieStore = cookies();
     const accountId = cookieStore.get("accountId")?.value;
 
     if (!accountId) {
@@ -14,10 +16,8 @@ export async function GET() {
       });
     }
 
-    const client = await clientPromise;
-    const db = client.db("atm");
-
-    const account = await db.collection("accounts").findOne({ accountId });
+    await connectToDB();
+    const account = await Account.findOne({ accountId });
 
     if (!account) {
       return new Response(JSON.stringify({ error: "Account not found" }), {
@@ -26,12 +26,14 @@ export async function GET() {
       });
     }
 
-    return new Response(JSON.stringify({ balance: account.balance }), {
+    const last10 = account.transactions.slice(-10).reverse(); // newest first
+
+    return new Response(JSON.stringify({ transactions: last10 }), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
   } catch (err) {
-    console.error("Account fetch error:", err);
+    console.error("Transaction history error:", err);
     return new Response(JSON.stringify({ error: "Server error" }), {
       status: 500,
       headers: { "Content-Type": "application/json" },

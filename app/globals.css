@@ -29,3 +29,11 @@ body {
   width: 100%;
   max-width: 100%;
 }
+
+body {
+  @apply bg-gray-50 text-gray-900;
+}
+
+button {
+  cursor: pointer;
+}

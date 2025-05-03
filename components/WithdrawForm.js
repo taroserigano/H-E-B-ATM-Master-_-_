@@ -21,6 +21,8 @@ export default function WithdrawForm() {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["accountBalance"] });
+      queryClient.invalidateQueries({ queryKey: ["accountTransactions"] });
+
       setMessage({ type: "success", text: "Withdraw successful!" });
       setAmount("");
     },
@@ -66,7 +68,7 @@ export default function WithdrawForm() {
 
       <button
         type="submit"
-        className={`w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded ${
+        className={`w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded transition font-semibold cursor-pointer ${
           mutation.isPending ? "opacity-50 cursor-not-allowed" : ""
         }`}
         disabled={mutation.isPending}

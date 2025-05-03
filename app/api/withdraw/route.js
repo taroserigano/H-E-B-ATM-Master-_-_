@@ -55,6 +55,14 @@ export async function POST(req) {
 
     // Apply withdrawal
     account.balance -= Number(amount);
+
+    account.transactions.push({
+      type: "withdraw",
+      amount: Number(amount),
+      balanceAfter: account.balance,
+    });
+    await account.save();
+
     account.withdrawnToday = newTotal;
     account.lastWithdrawDate = today;
     await account.save();

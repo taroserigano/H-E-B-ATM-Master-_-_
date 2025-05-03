@@ -33,6 +33,13 @@ export async function POST(req) {
     }
 
     account.balance += Number(amount);
+
+    account.transactions.push({
+      type: "deposit",
+      amount: Number(amount),
+      balanceAfter: account.balance,
+    });
+
     await account.save();
 
     return new Response(
