@@ -1,5 +1,5 @@
 import { cookies } from "next/headers";
-import { getAccounts } from "@/lib/db";
+import { getAccountById } from "@/lib/accountService";
 
 export async function GET() {
   const cookieStore = await cookies();
@@ -12,9 +12,7 @@ export async function GET() {
     });
   }
 
-  const accounts = getAccounts();
-  const account = accounts.find((acc) => acc.accountId === accountId);
-
+  const account = await getAccountById(accountId);
   if (!account) {
     return new Response(JSON.stringify({ error: "Account not found" }), {
       status: 404,

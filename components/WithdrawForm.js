@@ -1,69 +1,88 @@
 "use client";
 
-import { useState } from "react";
-import { useAccount } from "@/context/account/AccountContext";
+import { useState, useEffect } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 export default function WithdrawForm() {
   const [amount, setAmount] = useState("");
-  const [error, setError] = useState("");
-  const { state, dispatch } = useAccount();
+  const [message, setMessage] = useState({ type: "", text: "" });
+  const queryClient = useQueryClient();
 
-  const handleWithdraw = async (e) => {
-    e.preventDefault();
-    setError("");
-
-    const value = parseFloat(amount);
-    if (isNaN(value) || value <= 0) {
-      setError("Enter a valid amount.");
-      return;
-    }
-
-    try {
+  const mutation = useMutation({
+    mutationFn: async (value) => {
       const res = await fetch("/api/withdraw", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ amount: value }),
-        credentials: "include",
       });
-
       const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Withdraw failed");
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["accountBalance"] });
+      setMessage({ type: "success", text: "Withdraw successful!" });
+      setAmount("");
+    },
+    onError: (err) => {
+      setMessage({ type: "error", text: err.message });
+    },
+  });
 
-      if (!res.ok) {
-        setError(data.error || "Withdraw failed.");
-        return;
-      }
+  useEffect(() => {
+    if (message.text) {
+      const timer = setTimeout(() => setMessage({ type: "", text: "" }), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [message]);
 
-      dispatch({ type: "SET_BALANCE", payload: data.newBalance });
-    } catch {
-      setError("Network error. Try again.");
+  const handleWithdraw = (e) => {
+    e.preventDefault();
+    const value = parseFloat(amount);
+
+    if (isNaN(value) || value <= 0) {
+      setMessage({ type: "error", text: "Enter a valid amount." });
+      return;
     }
 
-    setAmount("");
+    mutation.mutate(value);
   };
 
   return (
     <form
       onSubmit={handleWithdraw}
-      className="bg-white p-4 rounded-xl shadow-lg w-full mt-4 border border-gray-200"
+      className="bg-white p-4 rounded shadow mb-4"
     >
       <h2 className="text-lg font-bold text-gray-800 mb-2">Withdraw Funds</h2>
+
       <input
         type="number"
         value={amount}
         onChange={(e) => setAmount(e.target.value)}
         placeholder="Amount"
-        className={`w-full p-2 rounded border mb-2 text-black placeholder-gray-500 
-          focus:outline-none focus:ring-2 focus:ring-red-400 transition duration-200 
-          ${error ? "border-red-500" : "border-gray-300"}`}
+        className="w-full p-2 border border-gray-300 text-gray-900 placeholder-gray-500 rounded mb-2"
+        disabled={mutation.isPending}
       />
+
       <button
         type="submit"
-        className="w-full bg-red-600 text-white py-2 rounded hover:bg-red-700 
-          font-semibold transition duration-200"
+        className={`w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded ${
+          mutation.isPending ? "opacity-50 cursor-not-allowed" : ""
+        }`}
+        disabled={mutation.isPending}
       >
-        Withdraw
+        {mutation.isPending ? "Withdrawing..." : "Withdraw"}
       </button>
-      {error && <p className="text-sm text-red-600 mt-2">{error}</p>}
+
+      {message.text && (
+        <p
+          className={`text-sm mt-2 ${
+            message.type === "error" ? "text-red-600" : "text-green-600"
+          }`}
+        >
+          {message.text}
+        </p>
+      )}
     </form>
   );
 }

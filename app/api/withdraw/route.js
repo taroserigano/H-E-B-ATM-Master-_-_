@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
-import { getAccounts, saveAccounts } from "@/lib/db";
+import { connectToDB } from "@/lib/mongoose";
+import Account from "@/models/Account";
 
 const DAILY_LIMIT = 500;
 
@@ -16,7 +17,6 @@ export async function POST(req) {
     }
 
     const { amount } = await req.json();
-
     if (!amount || isNaN(amount) || amount <= 0) {
       return new Response(JSON.stringify({ error: "Invalid amount" }), {
         status: 400,
@@ -24,8 +24,9 @@ export async function POST(req) {
       });
     }
 
-    const accounts = getAccounts();
-    const account = accounts.find((acc) => acc.accountId === accountId);
+    await connectToDB();
+    const account = await Account.findOne({ accountId });
+
     if (!account) {
       return new Response(JSON.stringify({ error: "Account not found" }), {
         status: 404,
@@ -34,19 +35,14 @@ export async function POST(req) {
     }
 
     const today = new Date().toISOString().split("T")[0];
-    if (account.lastWithdrawDate !== today) {
-      account.withdrawnToday = 0;
-      account.lastWithdrawDate = today;
-    }
+    const isNewDay = account.lastWithdrawDate !== today;
+    const withdrawnToday = isNewDay ? 0 : account.withdrawnToday;
+    const newTotal = withdrawnToday + Number(amount);
 
-    const newTotal = account.withdrawnToday + Number(amount);
     if (newTotal > DAILY_LIMIT) {
       return new Response(
         JSON.stringify({ error: `Daily limit of $${DAILY_LIMIT} exceeded.` }),
-        {
-          status: 403,
-          headers: { "Content-Type": "application/json" },
-        }
+        { status: 403, headers: { "Content-Type": "application/json" } }
       );
     }
 
@@ -57,9 +53,11 @@ export async function POST(req) {
       });
     }
 
+    // Apply withdrawal
     account.balance -= Number(amount);
     account.withdrawnToday = newTotal;
-    saveAccounts(accounts);
+    account.lastWithdrawDate = today;
+    await account.save();
 
     return new Response(
       JSON.stringify({ success: true, newBalance: account.balance }),
@@ -69,6 +67,7 @@ export async function POST(req) {
       }
     );
   } catch (err) {
+    console.error("Withdraw error:", err);
     return new Response(JSON.stringify({ error: "Server error" }), {
       status: 500,
       headers: { "Content-Type": "application/json" },

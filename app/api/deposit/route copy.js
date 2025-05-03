@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
-import { connectToDB } from "@/lib/mongoose";
-import Account from "@/models/Account";
+import clientPromise from "@/lib/mongodb";
+import { ObjectId } from "mongodb";
 
 export async function POST(req) {
   try {
@@ -22,9 +22,11 @@ export async function POST(req) {
       });
     }
 
-    await connectToDB();
-    const account = await Account.findOne({ accountId });
+    const client = await clientPromise;
+    const db = client.db("atm");
+    const accountsCollection = db.collection("accounts");
 
+    const account = await accountsCollection.findOne({ accountId });
     if (!account) {
       return new Response(JSON.stringify({ error: "Account not found" }), {
         status: 404,
@@ -32,16 +34,20 @@ export async function POST(req) {
       });
     }
 
-    account.balance += Number(amount);
-    await account.save();
-
-    return new Response(
-      JSON.stringify({ success: true, newBalance: account.balance }),
-      {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      }
+    const newBalance = account.balance + Number(amount);
+    const result = await accountsCollection.updateOne(
+      { accountId },
+      { $set: { balance: newBalance } }
     );
+
+    if (result.modifiedCount !== 1) {
+      throw new Error("Deposit failed to update balance");
+    }
+
+    return new Response(JSON.stringify({ success: true, newBalance }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
   } catch (err) {
     console.error("Deposit error:", err);
     return new Response(JSON.stringify({ error: "Server error" }), {
