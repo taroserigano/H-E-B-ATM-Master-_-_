@@ -2,10 +2,10 @@
   {
     "accountId": "1111",
     "pin": "1234",
-    "balance": 1844,
+    "balance": 1955,
     "dailyWithdrawn": 0,
     "dailyLimit": 300,
-    "withdrawnToday": 11,
+    "withdrawnToday": 233,
     "lastWithdrawDate": "2025-05-03"
   },
   {

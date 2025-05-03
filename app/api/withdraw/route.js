@@ -4,7 +4,7 @@ import { getAccounts, saveAccounts } from "@/lib/db";
 const DAILY_LIMIT = 500;
 
 export async function POST(req) {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const accountId = cookieStore.get("accountId")?.value;
 
   if (!accountId) {
