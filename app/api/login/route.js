@@ -1,26 +1,36 @@
-import { cookies } from "next/headers";
-
-const users = {
-  1111: "1234",
-  2222: "1234",
-  3333: "1234",
-};
+import { getAccounts } from "@/lib/db";
 
 export async function POST(req) {
-  const { account, pin } = await req.json();
-  console.log("Received:", { account, pin });
+  const { accountId, pin } = await req.json();
 
-  if (users[account] === pin) {
-    const cookieStore = await cookies(); // ✅ await is required
-    cookieStore.set("session", account, {
-      httpOnly: true,
-      secure: true, // ⚠️ Set to false for localhost testing
-      sameSite: "lax",
-      path: "/",
-      maxAge: 60 * 60, // 1 hour
-    });
-    return Response.json({ success: true });
+  if (!accountId || !pin) {
+    return new Response(
+      JSON.stringify({ error: "Account ID and PIN required" }),
+      {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
   }
 
-  return Response.json({ error: "Invalid login" }, { status: 401 });
+  const accounts = getAccounts();
+  const account = accounts.find(
+    (acc) => acc.accountId === accountId && acc.pin === pin
+  );
+
+  if (!account) {
+    return new Response(JSON.stringify({ error: "Invalid credentials" }), {
+      status: 401,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  // Set httpOnly cookie for accountId
+  return new Response(JSON.stringify({ success: true }), {
+    status: 200,
+    headers: {
+      "Content-Type": "application/json",
+      "Set-Cookie": `accountId=${account.accountId}; HttpOnly; Path=/; Max-Age=86400; SameSite=Lax`,
+    },
+  });
 }

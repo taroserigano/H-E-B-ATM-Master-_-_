@@ -1,0 +1,23 @@
+[
+  {
+    "accountId": "1111",
+    "pin": "1234",
+    "balance": 1733,
+    "dailyWithdrawn": 0,
+    "dailyLimit": 300
+  },
+  {
+    "accountId": "2222",
+    "pin": "1234",
+    "balance": 800,
+    "dailyWithdrawn": 0,
+    "dailyLimit": 300
+  },
+  {
+    "accountId": "3333",
+    "pin": "1234",
+    "balance": 1200,
+    "dailyWithdrawn": 0,
+    "dailyLimit": 300
+  }
+]
