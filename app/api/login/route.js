@@ -1,6 +1,6 @@
-import { NextResponse } from "next/server";
 import { validateLogin } from "@/lib/actions/validateLogin";
 import { z } from "zod";
+import { NextResponse } from "next/server";
 
 const COOKIE_NAME = "accountId";
 const LoginSchema = z.object({
@@ -13,19 +13,18 @@ export async function POST(req) {
   const result = LoginSchema.safeParse(body);
 
   if (!result.success) {
-    return NextResponse.json({ error: "Invalid input" }, { status: 400 });
+    return Response.json({ error: "Invalid input" }, { status: 400 });
   }
 
   const { accountId, pin } = result.data;
 
-  // ✅ Call shared action
   const account = await validateLogin(accountId, pin);
 
   if (!account) {
-    return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
+    return Response.json({ error: "Invalid credentials" }, { status: 401 });
   }
 
-  const res = NextResponse.json({ success: true });
+  const res = Response.json({ success: true });
   res.headers.set(
     "Set-Cookie",
     `${COOKIE_NAME}=${accountId}; Path=/; HttpOnly; SameSite=Lax`

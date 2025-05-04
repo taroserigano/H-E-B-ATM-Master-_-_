@@ -5,14 +5,8 @@ export async function GET() {
     const client = await clientPromise;
     await client.db().command({ ping: 1 });
 
-    return new Response(JSON.stringify({ connected: true }), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
+    return Response.json({ connected: true });
   } catch (error) {
-    return new Response(JSON.stringify({ connected: false }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
+    return Response.json({ connected: false }, { status: 500 });
   }
 }

@@ -8,36 +8,24 @@ export async function GET(req) {
     const accountId = cookieStore.get("accountId")?.value;
 
     if (!accountId) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { "Content-Type": "application/json" },
-      });
+      return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     await connectToDB();
     const account = await Account.findOne({ accountId });
 
     if (!account) {
-      return new Response(JSON.stringify({ error: "Account not found" }), {
-        status: 404,
-        headers: { "Content-Type": "application/json" },
-      });
+      return Response.json({ error: "Account not found" }, { status: 404 });
     }
 
     const url = new URL(req.url);
     const limit = parseInt(url.searchParams.get("limit")) || 10;
 
-    const transactions = account.transactions.slice(-limit).reverse(); // Newest first
+    const transactions = account.transactions.slice(-limit).reverse();
 
-    return new Response(JSON.stringify({ transactions }), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
+    return Response.json({ transactions });
   } catch (err) {
     console.error("Transaction history error:", err);
-    return new Response(JSON.stringify({ error: "Server error" }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
+    return Response.json({ error: "Server error" }, { status: 500 });
   }
 }

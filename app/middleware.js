@@ -6,14 +6,18 @@ const COOKIE_NAME = "accountId";
 export function middleware(req) {
   const { pathname } = req.nextUrl;
 
-  // ✅ Allow public endpoints
-  if (PUBLIC_ROUTES.includes(pathname)) {
+  // ✅ Normalize for case-insensitive matching
+  const lowerPath = pathname.toLowerCase();
+
+  // ✅ Allow public routes
+  if (PUBLIC_ROUTES.includes(lowerPath)) {
     return NextResponse.next();
   }
 
-  // Allow only with accountId
+  // ✅ Protect all other /api routes
   if (pathname.startsWith("/api/")) {
     const hasSession = req.cookies.get(COOKIE_NAME);
+
     if (!hasSession) {
       return new NextResponse(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,

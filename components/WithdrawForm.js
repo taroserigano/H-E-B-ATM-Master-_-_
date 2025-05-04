@@ -31,28 +31,108 @@ export default function WithdrawForm() {
       const { data } = await axios.post("/api/withdraw", { amount: value });
       return data;
     },
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["accountBalance"] });
-      queryClient.invalidateQueries({ queryKey: ["accountTransactions"] });
-      queryClient.invalidateQueries({ queryKey: ["withdrawalLimit"] });
+
+    // 🧠 Optimistically update cache
+    onMutate: async (value) => {
+      await queryClient.cancelQueries({ queryKey: ["accountBalance"] });
+      await queryClient.cancelQueries({ queryKey: ["accountTransactions"] });
+      await queryClient.cancelQueries({ queryKey: ["withdrawalLimit"] });
+
+      const prevBalance = queryClient.getQueryData(["accountBalance"]);
+      const prevTransactions = queryClient.getQueryData([
+        "accountTransactions",
+      ]);
+      const prevLimit = queryClient.getQueryData(["withdrawalLimit"]);
+
+      if (prevBalance && typeof prevBalance.balance === "number") {
+        queryClient.setQueryData(["accountBalance"], {
+          balance: prevBalance.balance - value,
+        });
+      }
+
+      if (prevTransactions?.transactions) {
+        queryClient.setQueryData(["accountTransactions"], {
+          transactions: [
+            ...prevTransactions.transactions,
+            {
+              type: "withdraw",
+              amount: value,
+              balanceAfter: (prevBalance?.balance || 0) - value,
+              date: new Date().toISOString(),
+            },
+          ],
+        });
+      }
+
+      if (prevLimit) {
+        queryClient.setQueryData(["withdrawalLimit"], {
+          ...prevLimit,
+          withdrawnToday: (prevLimit.withdrawnToday || 0) + value,
+          remaining: (prevLimit.remaining || 0) - value,
+        });
+      }
+
+      return { prevBalance, prevTransactions, prevLimit };
+    },
+
+    onError: (err, _, context) => {
+      if (context?.prevBalance)
+        queryClient.setQueryData(["accountBalance"], context.prevBalance);
+      if (context?.prevTransactions)
+        queryClient.setQueryData(
+          ["accountTransactions"],
+          context.prevTransactions
+        );
+      if (context?.prevLimit)
+        queryClient.setQueryData(["withdrawalLimit"], context.prevLimit);
+
+      const errorMsg =
+        err?.response?.data?.error || err.message || "Withdraw failed";
+      setMessage({ type: "error", text: errorMsg });
+    },
+
+    onSuccess: (_, value) => {
       setMessage({
         type: "success",
-        text: `✔  $${variables.toFixed(2)} withdrawn`,
+        text: `✔ Withdrew $${value.toFixed(2)}`,
       });
       setAmount("");
     },
-    onError: (err) => {
-      const errorMsg = err?.response?.data?.error || err.message;
-      setMessage({ type: "error", text: errorMsg });
+
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["accountBalance"] });
+      queryClient.invalidateQueries({ queryKey: ["accountTransactions"] });
+      queryClient.invalidateQueries({ queryKey: ["withdrawalLimit"] });
     },
   });
 
   const handleWithdraw = useCallback(
     (e) => {
       e.preventDefault();
-      const value = parseFloat(amount);
-      if (isNaN(value) || value <= 0) {
-        setMessage({ type: "error", text: "Enter a valid amount." });
+
+      const raw = amount.trim();
+      if (!raw) {
+        setMessage({ type: "error", text: "Amount is required." });
+        return;
+      }
+
+      const value = parseFloat(raw);
+
+      if (isNaN(value)) {
+        setMessage({ type: "error", text: "Amount must be a number." });
+        return;
+      }
+
+      if (value <= 0) {
+        setMessage({ type: "error", text: "Amount must be greater than 0." });
+        return;
+      }
+
+      if (!/^\d+(\.\d{1,2})?$/.test(raw)) {
+        setMessage({
+          type: "error",
+          text: "Max 2 decimal places allowed.",
+        });
         return;
       }
 
@@ -63,7 +143,9 @@ export default function WithdrawForm() {
       ) {
         setMessage({
           type: "error",
-          text: `Max $${limitData.remaining.toFixed(2)} remaining today.`,
+          text: `You can only withdraw up to $${limitData.remaining.toFixed(
+            2
+          )} today.`,
         });
         return;
       }
@@ -95,7 +177,7 @@ export default function WithdrawForm() {
         {message.text && (
           <span
             className={`text-sm ${
-              message.type === "error" ? "text-red-600" : "text-blue-600"
+              message.type === "error" ? "text-red-600" : "text-green-600"
             }`}
           >
             {message.text}
@@ -110,10 +192,8 @@ export default function WithdrawForm() {
           Error loading limit: {limitError.message}
         </p>
       ) : limitData ? (
-        <div className="text-sm mb-3">
-          <div className="text-green-600 font-semibold">
-            ✅ Remaining: ${limitData.remaining}
-          </div>
+        <div className="text-sm mb-3 text-green-600 font-semibold">
+          ✅ Remaining: ${limitData.remaining}
         </div>
       ) : null}
 

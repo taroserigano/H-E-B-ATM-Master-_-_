@@ -16,19 +16,67 @@ export default function DepositForm() {
       const { data } = await axios.post("/api/deposit", { amount: value });
       return data;
     },
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["accountBalance"] });
-      queryClient.invalidateQueries({ queryKey: ["accountTransactions"] });
-      setMessage({
-        type: "success",
-        text: `✔ ${variables.toFixed(2)} Deposited `,
-      });
-      setAmount("");
+
+    // 🧠 Optimistically update balance + transactions
+    onMutate: async (value) => {
+      await queryClient.cancelQueries({ queryKey: ["accountBalance"] });
+      await queryClient.cancelQueries({ queryKey: ["accountTransactions"] });
+
+      const prevBalance = queryClient.getQueryData(["accountBalance"]);
+      const prevTransactions = queryClient.getQueryData([
+        "accountTransactions",
+      ]);
+
+      if (prevBalance && typeof prevBalance.balance === "number") {
+        queryClient.setQueryData(["accountBalance"], {
+          balance: prevBalance.balance + value,
+        });
+      }
+
+      if (prevTransactions?.transactions) {
+        queryClient.setQueryData(["accountTransactions"], {
+          transactions: [
+            ...prevTransactions.transactions,
+            {
+              type: "deposit",
+              amount: value,
+              balanceAfter: (prevBalance?.balance || 0) + value,
+              date: new Date().toISOString(),
+            },
+          ],
+        });
+      }
+
+      return { prevBalance, prevTransactions };
     },
-    onError: (err) => {
+
+    onError: (err, _, context) => {
+      if (context?.prevBalance) {
+        queryClient.setQueryData(["accountBalance"], context.prevBalance);
+      }
+      if (context?.prevTransactions) {
+        queryClient.setQueryData(
+          ["accountTransactions"],
+          context.prevTransactions
+        );
+      }
+
       const errorMsg =
         err?.response?.data?.error || err.message || "Deposit failed";
       setMessage({ type: "error", text: errorMsg });
+    },
+
+    onSuccess: (_, value) => {
+      setMessage({
+        type: "success",
+        text: `✔ Deposited $${value.toFixed(2)}`,
+      });
+      setAmount("");
+    },
+
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["accountBalance"] });
+      queryClient.invalidateQueries({ queryKey: ["accountTransactions"] });
     },
   });
 
@@ -37,7 +85,6 @@ export default function DepositForm() {
 
     if (!raw) {
       setMessage({ type: "error", text: "Amount is required." });
-      setAmount("");
       return;
     }
 
@@ -45,22 +92,16 @@ export default function DepositForm() {
 
     if (isNaN(value)) {
       setMessage({ type: "error", text: "Amount must be a number." });
-      setAmount("");
-
       return;
     }
 
     if (value <= 0) {
       setMessage({ type: "error", text: "Amount must be greater than 0." });
-      setAmount("");
-
       return;
     }
 
     if (!/^\d+(\.\d{1,2})?$/.test(raw)) {
       setMessage({ type: "error", text: "Max 2 decimal places allowed." });
-      setAmount("");
-
       return;
     }
 
@@ -98,7 +139,7 @@ export default function DepositForm() {
       </div>
 
       <input
-        type="text"
+        type="number"
         placeholder="Amount"
         value={amount}
         onChange={(e) => setAmount(e.target.value)}
