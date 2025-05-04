@@ -2,12 +2,17 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import axios from "axios"; // ✅ import axios
+import { useDebounce } from "@/lib/hooks/useDebounce";
 import { useSession } from "@/context/session/SessionContext";
 import { useAccount } from "@/context/account/AccountContext";
 
 export default function LoginPage() {
-  const [formData, setFormData] = useState({ accountId: "1111", pin: "1234" });
+  const [formData, setFormData] = useState({ accountId: "1111", pin: "123" });
   const [error, setError] = useState("");
+
+  const debouncedAccountId = useDebounce(formData.accountId, 800);
+  const debouncedPin = useDebounce(formData.pin, 800);
 
   const router = useRouter();
   const { setAccountId } = useSession();
@@ -20,25 +25,17 @@ export default function LoginPage() {
     setError("");
 
     try {
-      const res = await fetch("/api/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ accountId, pin }),
-      });
-
-      if (!res.ok) {
-        setError("Login failed. Check your Account ID and PIN.");
-        return;
-      }
+      // ✅ Login request via axios
+      await axios.post("/api/login", { accountId, pin });
 
       setAccountId(accountId);
 
-      const balanceRes = await fetch("/api/balance", {
-        credentials: "include",
+      // ✅ Balance fetch via axios
+      const { data } = await axios.get("/api/balance", {
+        withCredentials: true,
       });
-      const data = await balanceRes.json();
 
-      if (balanceRes.ok && typeof data.balance === "number") {
+      if (typeof data.balance === "number") {
         dispatch({ type: "SET_BALANCE", payload: data.balance });
       } else {
         dispatch({
@@ -50,21 +47,17 @@ export default function LoginPage() {
       router.push("/dashboard");
     } catch (err) {
       console.error("Login error:", err);
-      setError("Something went wrong. Please try again.");
+      const msg =
+        err?.response?.data?.error || "Something went wrong. Please try again.";
+      setError(msg);
     }
   }, [formData, dispatch, router, setAccountId]);
 
-  // ⏳ Debounced auto-submit
   useEffect(() => {
-    const { accountId, pin } = formData;
-    if (!accountId && !pin) return;
-
-    const timeout = setTimeout(() => {
+    if (debouncedAccountId && debouncedPin) {
       handleSubmit();
-    }, 800);
-
-    return () => clearTimeout(timeout);
-  }, [formData, handleSubmit]);
+    }
+  }, [debouncedAccountId, debouncedPin, handleSubmit]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -91,8 +84,7 @@ export default function LoginPage() {
           H‑E‑B ATM Login
         </h1>
 
-        {/* Dummy inputs to block browser autofill */}
-        {/* <input
+        <input
           type="text"
           name="fake-user"
           autoComplete="username"
@@ -103,7 +95,7 @@ export default function LoginPage() {
           name="fake-pass"
           autoComplete="new-password"
           style={{ display: "none" }}
-        /> */}
+        />
 
         <input
           name="accountId"

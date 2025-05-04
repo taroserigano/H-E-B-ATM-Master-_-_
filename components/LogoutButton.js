@@ -1,15 +1,14 @@
 "use client";
 
+import axios from "axios";
+
 export default function LogoutButton() {
   const handleLogout = async () => {
-    const res = await fetch("/api/logout", {
-      method: "POST",
-      credentials: "include",
-    });
-
-    if (res.ok) {
+    try {
+      await axios.post("/api/logout", {}, { withCredentials: true });
       window.location.href = "/login";
-    } else {
+    } catch (err) {
+      console.error("Logout failed:", err);
       alert("Logout failed");
     }
   };

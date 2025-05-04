@@ -1,10 +1,8 @@
-// app/api/transactions/route.js
-
 import { connectToDB } from "@/lib/mongoose";
 import Account from "@/models/Account";
 import { cookies } from "next/headers";
 
-export async function GET() {
+export async function GET(req) {
   try {
     const cookieStore = await cookies();
     const accountId = cookieStore.get("accountId")?.value;
@@ -26,9 +24,12 @@ export async function GET() {
       });
     }
 
-    const last10 = account.transactions.slice(-10).reverse(); // newest first
+    const url = new URL(req.url);
+    const limit = parseInt(url.searchParams.get("limit")) || 10;
 
-    return new Response(JSON.stringify({ transactions: last10 }), {
+    const transactions = account.transactions.slice(-limit).reverse(); // Newest first
+
+    return new Response(JSON.stringify({ transactions }), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });

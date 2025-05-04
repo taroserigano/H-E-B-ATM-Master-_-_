@@ -67,8 +67,8 @@ export default function DashboardClient() {
           {isLoading ? (
             <p className="text-center text-gray-600 mb-2">Loading balance...</p>
           ) : isError || typeof data?.balance !== "number" ? (
-            <p className="text-center text-red-600 mb-2">
-              Error: {error?.message || "Unable to load balance"}
+            <p className="text-center text-gray-600 mb-2">
+              {error?.message || "Loading"}
             </p>
           ) : (
             <p className="text-center text-gray-800 text-lg font-semibold mb-2">

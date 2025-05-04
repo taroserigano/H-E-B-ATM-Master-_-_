@@ -2,44 +2,57 @@
 
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import axios from "axios";
 import * as XLSX from "xlsx";
 
 export default function TransactionHistory() {
   const [visible, setVisible] = useState(false);
 
-  const { data, isLoading, isError } = useQuery({
+  const {
+    data: displayData,
+    isLoading,
+    isError,
+  } = useQuery({
     queryKey: ["accountTransactions"],
     queryFn: async () => {
-      const res = await fetch("/api/transactions", {
-        credentials: "include",
+      const { data } = await axios.get("/api/transactions?limit=10", {
+        withCredentials: true,
       });
-      if (!res.ok) throw new Error("Unauthorized");
-      return res.json();
+      return data;
     },
     refetchOnMount: true,
     refetchOnWindowFocus: true,
   });
 
-  const exportToExcel = () => {
-    if (!data?.transactions?.length) return;
+  const exportToExcel = async () => {
+    try {
+      const { data } = await axios.get("/api/transactions?limit=100", {
+        withCredentials: true,
+      });
 
-    const rows = data.transactions.map((tx) => ({
-      Type: tx.type,
-      Amount: tx.amount,
-      "Balance After": tx.balanceAfter,
-      Date: new Date(tx.date).toLocaleString(),
-    }));
+      if (!data?.transactions?.length) return;
 
-    const worksheet = XLSX.utils.json_to_sheet(rows);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Transactions");
-    XLSX.writeFile(workbook, "transactions.xlsx");
+      const rows = data.transactions.map((tx) => ({
+        Type: tx.type,
+        Amount: tx.amount,
+        "Balance After": tx.balanceAfter,
+        Date: new Date(tx.date).toLocaleString(),
+      }));
+
+      const worksheet = XLSX.utils.json_to_sheet(rows);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Transactions");
+      XLSX.writeFile(workbook, "transactions.xlsx");
+    } catch (err) {
+      console.error("Export error:", err);
+      alert("Failed to export transactions.");
+    }
   };
 
   return (
     <div className="mt-6">
       {/* Header */}
-      <div className="flex justify-between items-center mb-2">
+      <div className="flex justify-between items-center mb-2 flex-wrap gap-2">
         <button
           onClick={() => setVisible((v) => !v)}
           className="bg-gray-200 hover:bg-gray-300 text-gray-800 text-sm font-semibold py-1 px-3 rounded shadow transition"
@@ -47,7 +60,7 @@ export default function TransactionHistory() {
           {visible ? "Hide" : "Show"} Last 10 Transactions
         </button>
 
-        {data?.transactions?.length > 0 && visible && (
+        {displayData?.transactions?.length > 0 && visible && (
           <button
             onClick={exportToExcel}
             className="bg-green-600 hover:bg-green-700 text-white text-sm font-semibold py-1 px-3 rounded shadow transition"
@@ -63,7 +76,7 @@ export default function TransactionHistory() {
           visible ? "max-h-[300px] opacity-100" : "max-h-0 opacity-0"
         }`}
       >
-        <div className="overflow-y-auto max-h-[200px]  scrollbar-thin scrollbar-thumb-gray-300 rounded-md border border-gray-200 bg-white shadow-inner p-2 space-y-2">
+        <div className="overflow-y-auto max-h-[200px] scrollbar-thin scrollbar-thumb-gray-300 rounded-md border border-gray-200 bg-white shadow-inner p-2 space-y-2">
           {isLoading ? (
             <p className="text-center text-sm text-gray-400">
               Loading transactions...
@@ -72,13 +85,13 @@ export default function TransactionHistory() {
             <p className="text-center text-sm text-red-600">
               Error loading transactions
             </p>
-          ) : data?.transactions?.length === 0 ? (
+          ) : displayData?.transactions?.length === 0 ? (
             <p className="text-center text-sm text-gray-400">
               No transactions yet.
             </p>
           ) : (
             <ul className="space-y-2">
-              {data.transactions.slice(0, 10).map((tx, index) => {
+              {displayData.transactions.map((tx, index) => {
                 const dateObj = new Date(tx.date);
                 const dateStr = dateObj.toLocaleDateString();
                 const timeStr = dateObj.toLocaleTimeString([], {

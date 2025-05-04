@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useDebouncedValue } from "@/lib/hooks/useDebouncedValue";
+import axios from "axios"; // ✅ import axios
 import { useDebounce } from "@/lib/hooks/useDebounce";
+
 export default function DepositForm() {
   const [amount, setAmount] = useState("");
   const [message, setMessage] = useState({ type: "", text: "" });
@@ -12,13 +13,7 @@ export default function DepositForm() {
 
   const mutation = useMutation({
     mutationFn: async (value) => {
-      const res = await fetch("/api/deposit", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount: value }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Deposit failed");
+      const { data } = await axios.post("/api/deposit", { amount: value }); // ✅ axios replaces fetch
       return data;
     },
     onSuccess: () => {
@@ -28,11 +23,12 @@ export default function DepositForm() {
       setAmount("");
     },
     onError: (err) => {
-      setMessage({ type: "error", text: err.message });
+      const errorMsg =
+        err?.response?.data?.error || err.message || "Deposit failed";
+      setMessage({ type: "error", text: errorMsg });
     },
   });
 
-  // 🔁 Trigger auto deposit if valid number & debounce is stable
   useEffect(() => {
     const value = parseFloat(debouncedAmount);
     if (!isNaN(value) && value > 0) {
@@ -40,7 +36,6 @@ export default function DepositForm() {
     }
   }, [debouncedAmount]);
 
-  // 🧼 Auto-clear message
   useEffect(() => {
     if (message.text) {
       const timer = setTimeout(() => setMessage({ type: "", text: "" }), 3000);

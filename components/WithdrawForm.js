@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import axios from "axios";
 
 export default function WithdrawForm() {
   const [amount, setAmount] = useState("");
@@ -17,12 +18,10 @@ export default function WithdrawForm() {
   } = useQuery({
     queryKey: ["withdrawalLimit"],
     queryFn: async () => {
-      const res = await fetch("/api/account/limit", {
-        credentials: "include", // ❗ Must include cookies
+      const { data } = await axios.get("/api/account/limit", {
+        withCredentials: true, // ✅ include cookie
       });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.error || "Failed to load limit");
-      return json;
+      return data;
     },
     refetchOnMount: true,
     refetchOnWindowFocus: true,
@@ -30,24 +29,19 @@ export default function WithdrawForm() {
 
   const withdrawMutation = useMutation({
     mutationFn: async (value) => {
-      const res = await fetch("/api/withdraw", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount: value }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Withdraw failed");
+      const { data } = await axios.post("/api/withdraw", { amount: value });
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["accountBalance"] });
       queryClient.invalidateQueries({ queryKey: ["accountTransactions"] });
-      queryClient.invalidateQueries({ queryKey: ["withdrawalLimit"] }); // 🔁 Refresh limit
+      queryClient.invalidateQueries({ queryKey: ["withdrawalLimit"] });
       setMessage({ type: "success", text: "Withdraw successful!" });
       setAmount("");
     },
     onError: (err) => {
-      setMessage({ type: "error", text: err.message });
+      const errorMsg = err?.response?.data?.error || err.message;
+      setMessage({ type: "error", text: errorMsg });
     },
   });
 
@@ -106,15 +100,7 @@ export default function WithdrawForm() {
           Error loading limit: {limitError.message}
         </p>
       ) : limitData ? (
-        <div className="text-sm mb-3 space-y-1">
-          {/* <div className="text-gray-700">
-            💵 <span className="font-medium">Daily Limit:</span>{" "}
-            <span className="text-gray-800">${limitData.dailyLimit}</span>
-          </div>
-          <div className="text-gray-700">
-            ⬆️ <span className="font-medium">Withdrawn Today:</span>{" "}
-            <span className="text-gray-800">${limitData.withdrawnToday}</span>
-          </div> */}
+        <div className="text-sm mb-3">
           <div className="text-green-600 font-semibold">
             ✅ Remaining: ${limitData.remaining}
           </div>
