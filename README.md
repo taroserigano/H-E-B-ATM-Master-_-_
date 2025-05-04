@@ -1,1 +1,6 @@
 “This ATM app is a full-stack Next.js system with secure cookie sessions, MongoDB persistence, and modular domain logic. I use both Mongoose and MongoClient where it makes sense, decoupled business logic in service files, and React Query for instant UI hydration. It’s secured by middleware, has optional rate limiting, and supports export and persistent logging of all transactions. With more time, I’d productionize it with iron-session, testing, and CI/CD pipelines.”
+
+“Daily withdrawal limits are enforced by storing a running counter (withdrawnToday) and resetting it based on the last transaction date (lastWithdrawDate). This avoids scanning historical logs for performance, but I could easily add a fallback validation pass by filtering transactions if needed for auditing.”
+
+
+
