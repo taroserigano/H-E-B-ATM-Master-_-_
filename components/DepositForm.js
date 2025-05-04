@@ -1,20 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 export default function DepositForm() {
   const [amount, setAmount] = useState("");
   const [message, setMessage] = useState({ type: "", text: "" });
   const queryClient = useQueryClient();
-
-  // 🧼 Auto-clear message after 3 sec
-  useEffect(() => {
-    if (message.text) {
-      const timer = setTimeout(() => setMessage({ type: "", text: "" }), 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [message]);
 
   const mutation = useMutation({
     mutationFn: async (value) => {
@@ -39,14 +31,23 @@ export default function DepositForm() {
     },
   });
 
-  const handleDeposit = () => {
+  const handleDeposit = useCallback(() => {
     const value = parseFloat(amount);
     if (isNaN(value) || value <= 0) {
       setMessage({ type: "error", text: "Enter a valid amount." });
       return;
     }
     mutation.mutate(value);
-  };
+  }, [amount, mutation]);
+
+  useEffect(() => {
+    if (message.text) {
+      const timer = setTimeout(() => setMessage({ type: "", text: "" }), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [message]);
+
+  const isDisabled = useMemo(() => mutation.isPending, [mutation.isPending]);
 
   return (
     <div className="w-full p-4 bg-white rounded shadow mb-4">
@@ -58,14 +59,17 @@ export default function DepositForm() {
         value={amount}
         onChange={(e) => setAmount(e.target.value)}
         className="w-full p-2 border border-gray-300 text-gray-900 placeholder-gray-500 rounded mb-2"
+        disabled={isDisabled}
       />
 
       <button
         onClick={handleDeposit}
-        disabled={mutation.isPending}
-        className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700 transition font-semibold cursor-pointer"
+        disabled={isDisabled}
+        className={`w-full bg-green-600 text-white py-2 rounded hover:bg-green-700 transition font-semibold cursor-pointer ${
+          isDisabled ? "opacity-50 cursor-not-allowed" : ""
+        }`}
       >
-        {mutation.isPending ? "Depositing..." : "Deposit"}
+        {isDisabled ? "Depositing..." : "Deposit"}
       </button>
 
       {message.text && (

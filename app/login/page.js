@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "@/context/session/SessionContext";
 import { useAccount } from "@/context/account/AccountContext";
+// import axios from "axios"; // optional replacement
 
 export default function LoginPage() {
   const [accountId, setAccountIdInput] = useState("");
@@ -13,39 +14,47 @@ export default function LoginPage() {
   const { setAccountId } = useSession();
   const { dispatch } = useAccount();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = useCallback(
+    async (e) => {
+      e.preventDefault();
+      setError("");
 
-    const res = await fetch("/api/login", {
-      method: "POST",
-      body: JSON.stringify({ accountId, pin }),
-      headers: { "Content-Type": "application/json" },
-    });
+      try {
+        const res = await fetch("/api/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ accountId, pin }),
+        });
 
-    if (!res.ok) {
-      setError("Login failed. Check your Account ID and PIN.");
-      return;
-    }
+        if (!res.ok) {
+          setError("Login failed. Check your Account ID and PIN.");
+          return;
+        }
 
-    setAccountId(accountId);
+        setAccountId(accountId);
 
-    // Fetch initial balance after login
-    const balanceRes = await fetch("/api/balance", {
-      credentials: "include",
-    });
-    const data = await balanceRes.json();
+        const balanceRes = await fetch("/api/balance", {
+          credentials: "include",
+        });
+        const data = await balanceRes.json();
 
-    if (balanceRes.ok && data.balance !== undefined) {
-      dispatch({ type: "SET_BALANCE", payload: data.balance });
-    } else {
-      dispatch({
-        type: "SET_ERROR",
-        payload: data.error || "Balance fetch failed",
-      });
-    }
+        if (balanceRes.ok && typeof data.balance === "number") {
+          dispatch({ type: "SET_BALANCE", payload: data.balance });
+        } else {
+          dispatch({
+            type: "SET_ERROR",
+            payload: data.error || "Balance fetch failed",
+          });
+        }
 
-    router.push("/dashboard");
-  };
+        router.push("/dashboard");
+      } catch (err) {
+        console.error("Login error:", err);
+        setError("Something went wrong. Please try again.");
+      }
+    },
+    [accountId, pin, dispatch, router, setAccountId]
+  );
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#f9f9f9] px-4">

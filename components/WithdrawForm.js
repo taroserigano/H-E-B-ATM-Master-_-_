@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 export default function WithdrawForm() {
@@ -8,7 +8,7 @@ export default function WithdrawForm() {
   const [message, setMessage] = useState({ type: "", text: "" });
   const queryClient = useQueryClient();
 
-  const mutation = useMutation({
+  const withdrawMutation = useMutation({
     mutationFn: async (value) => {
       const res = await fetch("/api/withdraw", {
         method: "POST",
@@ -19,10 +19,9 @@ export default function WithdrawForm() {
       if (!res.ok) throw new Error(data.error || "Withdraw failed");
       return data;
     },
-    onSuccess: (data) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["accountBalance"] });
       queryClient.invalidateQueries({ queryKey: ["accountTransactions"] });
-
       setMessage({ type: "success", text: "Withdraw successful!" });
       setAmount("");
     },
@@ -31,6 +30,21 @@ export default function WithdrawForm() {
     },
   });
 
+  // 🧠 Stable handler
+  const handleWithdraw = useCallback(
+    (e) => {
+      e.preventDefault();
+      const value = parseFloat(amount);
+      if (isNaN(value) || value <= 0) {
+        setMessage({ type: "error", text: "Enter a valid amount." });
+        return;
+      }
+      withdrawMutation.mutate(value);
+    },
+    [amount, withdrawMutation]
+  );
+
+  // 🧼 Auto-clear message
   useEffect(() => {
     if (message.text) {
       const timer = setTimeout(() => setMessage({ type: "", text: "" }), 3000);
@@ -38,17 +52,11 @@ export default function WithdrawForm() {
     }
   }, [message]);
 
-  const handleWithdraw = (e) => {
-    e.preventDefault();
-    const value = parseFloat(amount);
-
-    if (isNaN(value) || value <= 0) {
-      setMessage({ type: "error", text: "Enter a valid amount." });
-      return;
-    }
-
-    mutation.mutate(value);
-  };
+  // 🧠 Memoize disabled state
+  const isDisabled = useMemo(
+    () => withdrawMutation.isPending,
+    [withdrawMutation.isPending]
+  );
 
   return (
     <form
@@ -63,17 +71,17 @@ export default function WithdrawForm() {
         onChange={(e) => setAmount(e.target.value)}
         placeholder="Amount"
         className="w-full p-2 border border-gray-300 text-gray-900 placeholder-gray-500 rounded mb-2"
-        disabled={mutation.isPending}
+        disabled={isDisabled}
       />
 
       <button
         type="submit"
         className={`w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded transition font-semibold cursor-pointer ${
-          mutation.isPending ? "opacity-50 cursor-not-allowed" : ""
+          isDisabled ? "opacity-50 cursor-not-allowed" : ""
         }`}
-        disabled={mutation.isPending}
+        disabled={isDisabled}
       >
-        {mutation.isPending ? "Withdrawing..." : "Withdraw"}
+        {isDisabled ? "Withdrawing..." : "Withdraw"}
       </button>
 
       {message.text && (

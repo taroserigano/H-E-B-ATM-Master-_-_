@@ -1,31 +1,44 @@
-import { getAccounts } from "@/lib/db";
+import { NextResponse } from "next/server";
+import { connectToDB } from "@/lib/mongoose";
+import Account from "@/models/Account";
+
+const COOKIE_NAME = "accountId";
 
 export async function POST(req) {
   try {
-    const { accountId, pin } = await req.json();
-    const accounts = getAccounts();
-    const account = accounts.find(
-      (acc) => acc.accountId === accountId && acc.pin === pin
-    );
+    await connectToDB();
 
-    if (!account) {
-      return new Response(JSON.stringify({ error: "Invalid credentials" }), {
-        status: 401,
-        headers: { "Content-Type": "application/json" },
-      });
+    const body = await req.json();
+    const { accountId, pin } = body;
+
+    // ✅ Validate required fields
+    if (!accountId || !pin) {
+      return NextResponse.json(
+        { error: "Missing credentials" },
+        { status: 400 }
+      );
     }
 
-    return new Response(JSON.stringify({ success: true }), {
-      status: 200,
-      headers: {
-        "Set-Cookie": `accountId=${accountId}; Path=/; HttpOnly; SameSite=Lax`,
-        "Content-Type": "application/json",
-      },
-    });
+    const account = await Account.findOne({ accountId });
+
+    if (!account || account.pin !== pin) {
+      return NextResponse.json(
+        { error: "Invalid credentials" },
+        { status: 401 }
+      );
+    }
+
+    // ✅ Set session cookie manually
+    const response = NextResponse.json({ success: true });
+
+    response.headers.set(
+      "Set-Cookie",
+      `${COOKIE_NAME}=${accountId}; Path=/; HttpOnly; SameSite=Lax`
+    );
+
+    return response;
   } catch (err) {
-    return new Response(JSON.stringify({ error: "Server error" }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
+    console.error("Login error:", err);
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }

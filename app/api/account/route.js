@@ -1,17 +1,16 @@
-// app/api/account/route.js
-import clientPromise from "@/lib/mongodb";
 import { cookies } from "next/headers";
+import clientPromise from "@/lib/mongodb"; // Using MongoClient here
+// If you're switching to mongoose only, you’d use connectToDB + Account model
+
+const COOKIE_NAME = "accountId";
 
 export async function GET() {
   try {
     const cookieStore = await cookies();
-    const accountId = cookieStore.get("accountId")?.value;
+    const accountId = cookieStore.get(COOKIE_NAME)?.value;
 
     if (!accountId) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { "Content-Type": "application/json" },
-      });
+      return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const client = await clientPromise;
@@ -20,21 +19,12 @@ export async function GET() {
     const account = await db.collection("accounts").findOne({ accountId });
 
     if (!account) {
-      return new Response(JSON.stringify({ error: "Account not found" }), {
-        status: 404,
-        headers: { "Content-Type": "application/json" },
-      });
+      return Response.json({ error: "Account not found" }, { status: 404 });
     }
 
-    return new Response(JSON.stringify({ balance: account.balance }), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
+    return Response.json({ balance: account.balance });
   } catch (err) {
     console.error("Account fetch error:", err);
-    return new Response(JSON.stringify({ error: "Server error" }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
+    return Response.json({ error: "Server error" }, { status: 500 });
   }
 }
