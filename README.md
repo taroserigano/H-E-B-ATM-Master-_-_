@@ -17,12 +17,22 @@ The app is structured with **clean architecture**, **secure session handling**, 
 
 ---
 
-### ⚛️ React Query — Data Fetching & Optimistic UI
-- Manages all API communication and caching.
-- Automatically syncs data across views.
-- **Optimistic updates**: UI instantly reflects deposits/withdrawals before the server confirms.
+## ⚛️ React Query — Data Fetching, Caching & Optimistic UI
 
-💡 *Benefit:* Smooth, real-time experience with rollback safety on failure.
+React Query powers efficient and reliable data handling throughout the app:
+
+- 🔄 **Automatic Caching** – Caches server responses and reuses them across components to minimize redundant API calls.
+- 🔁 **Background Syncing** – Keeps data fresh by silently refetching in the background.
+- ⚡ **Instant Updates** – Supports optimistic UI, so actions like deposits and withdrawals show up immediately in the interface.
+- 🛡️ **Rollback Safety** – Automatically reverts UI changes if the server request fails.
+- 🔗 **State Sharing** – Shares and syncs data across views and tabs out of the box.
+
+### 💡 Benefits
+- Smooth, real-time user experience.
+- Fewer loading spinners and flickers.
+- Reduced server load and faster perceived performance.
+- Improved reliability with built-in error recovery.
+
 
 ---
 
