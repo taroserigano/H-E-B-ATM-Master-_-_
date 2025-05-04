@@ -1,12 +1,32 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useState, useCallback, useMemo } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 export default function WithdrawForm() {
   const [amount, setAmount] = useState("");
   const [message, setMessage] = useState({ type: "", text: "" });
   const queryClient = useQueryClient();
+
+  // 🧠 Fetch daily withdrawal limit info
+  const {
+    data: limitData,
+    isLoading: isLimitLoading,
+    isError: isLimitError,
+    error: limitError,
+  } = useQuery({
+    queryKey: ["withdrawalLimit"],
+    queryFn: async () => {
+      const res = await fetch("/api/account/limit", {
+        credentials: "include", // ❗ Must include cookies
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Failed to load limit");
+      return json;
+    },
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
+  });
 
   const withdrawMutation = useMutation({
     mutationFn: async (value) => {
@@ -22,6 +42,7 @@ export default function WithdrawForm() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["accountBalance"] });
       queryClient.invalidateQueries({ queryKey: ["accountTransactions"] });
+      queryClient.invalidateQueries({ queryKey: ["withdrawalLimit"] }); // 🔁 Refresh limit
       setMessage({ type: "success", text: "Withdraw successful!" });
       setAmount("");
     },
@@ -30,7 +51,6 @@ export default function WithdrawForm() {
     },
   });
 
-  // 🧠 Stable handler
   const handleWithdraw = useCallback(
     (e) => {
       e.preventDefault();
@@ -39,12 +59,26 @@ export default function WithdrawForm() {
         setMessage({ type: "error", text: "Enter a valid amount." });
         return;
       }
+
+      if (
+        limitData &&
+        typeof limitData.remaining === "number" &&
+        value > limitData.remaining
+      ) {
+        setMessage({
+          type: "error",
+          text: `You can only withdraw up to $${limitData.remaining.toFixed(
+            2
+          )} today.`,
+        });
+        return;
+      }
+
       withdrawMutation.mutate(value);
     },
-    [amount, withdrawMutation]
+    [amount, withdrawMutation, limitData]
   );
 
-  // 🧼 Auto-clear message
   useEffect(() => {
     if (message.text) {
       const timer = setTimeout(() => setMessage({ type: "", text: "" }), 3000);
@@ -52,7 +86,6 @@ export default function WithdrawForm() {
     }
   }, [message]);
 
-  // 🧠 Memoize disabled state
   const isDisabled = useMemo(
     () => withdrawMutation.isPending,
     [withdrawMutation.isPending]
@@ -65,8 +98,31 @@ export default function WithdrawForm() {
     >
       <h2 className="text-lg font-bold text-gray-800 mb-2">Withdraw Funds</h2>
 
+      {/* 🧠 Daily limit status block */}
+      {isLimitLoading ? (
+        <p className="text-sm text-gray-400 mb-2">Loading daily limit...</p>
+      ) : isLimitError ? (
+        <p className="text-sm text-red-600 mb-2">
+          Error loading limit: {limitError.message}
+        </p>
+      ) : limitData ? (
+        <div className="text-sm mb-3 space-y-1">
+          {/* <div className="text-gray-700">
+            💵 <span className="font-medium">Daily Limit:</span>{" "}
+            <span className="text-gray-800">${limitData.dailyLimit}</span>
+          </div>
+          <div className="text-gray-700">
+            ⬆️ <span className="font-medium">Withdrawn Today:</span>{" "}
+            <span className="text-gray-800">${limitData.withdrawnToday}</span>
+          </div> */}
+          <div className="text-green-600 font-semibold">
+            ✅ Remaining: ${limitData.remaining}
+          </div>
+        </div>
+      ) : null}
+
       <input
-        type="number"
+        type="text"
         value={amount}
         onChange={(e) => setAmount(e.target.value)}
         placeholder="Amount"

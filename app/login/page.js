@@ -1,65 +1,84 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "@/context/session/SessionContext";
 import { useAccount } from "@/context/account/AccountContext";
-// import axios from "axios"; // optional replacement
 
 export default function LoginPage() {
-  const [accountId, setAccountIdInput] = useState("");
-  const [pin, setPin] = useState("");
+  const [formData, setFormData] = useState({ accountId: "1111", pin: "1234" });
   const [error, setError] = useState("");
+
   const router = useRouter();
   const { setAccountId } = useSession();
   const { dispatch } = useAccount();
 
-  const handleSubmit = useCallback(
-    async (e) => {
-      e.preventDefault();
-      setError("");
+  const handleSubmit = useCallback(async () => {
+    const { accountId, pin } = formData;
+    if (!accountId || !pin) return;
 
-      try {
-        const res = await fetch("/api/login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ accountId, pin }),
-        });
+    setError("");
 
-        if (!res.ok) {
-          setError("Login failed. Check your Account ID and PIN.");
-          return;
-        }
+    try {
+      const res = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ accountId, pin }),
+      });
 
-        setAccountId(accountId);
-
-        const balanceRes = await fetch("/api/balance", {
-          credentials: "include",
-        });
-        const data = await balanceRes.json();
-
-        if (balanceRes.ok && typeof data.balance === "number") {
-          dispatch({ type: "SET_BALANCE", payload: data.balance });
-        } else {
-          dispatch({
-            type: "SET_ERROR",
-            payload: data.error || "Balance fetch failed",
-          });
-        }
-
-        router.push("/dashboard");
-      } catch (err) {
-        console.error("Login error:", err);
-        setError("Something went wrong. Please try again.");
+      if (!res.ok) {
+        setError("Login failed. Check your Account ID and PIN.");
+        return;
       }
-    },
-    [accountId, pin, dispatch, router, setAccountId]
-  );
+
+      setAccountId(accountId);
+
+      const balanceRes = await fetch("/api/balance", {
+        credentials: "include",
+      });
+      const data = await balanceRes.json();
+
+      if (balanceRes.ok && typeof data.balance === "number") {
+        dispatch({ type: "SET_BALANCE", payload: data.balance });
+      } else {
+        dispatch({
+          type: "SET_ERROR",
+          payload: data.error || "Balance fetch failed",
+        });
+      }
+
+      router.push("/dashboard");
+    } catch (err) {
+      console.error("Login error:", err);
+      setError("Something went wrong. Please try again.");
+    }
+  }, [formData, dispatch, router, setAccountId]);
+
+  // ⏳ Debounced auto-submit
+  useEffect(() => {
+    const { accountId, pin } = formData;
+    if (!accountId && !pin) return;
+
+    const timeout = setTimeout(() => {
+      handleSubmit();
+    }, 800);
+
+    return () => clearTimeout(timeout);
+  }, [formData, handleSubmit]);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#f9f9f9] px-4">
       <form
-        onSubmit={handleSubmit}
+        autoComplete="off"
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleSubmit();
+        }}
         className="bg-white p-6 rounded-xl shadow-xl w-full max-w-md border border-gray-200"
       >
         <img
@@ -72,28 +91,46 @@ export default function LoginPage() {
           H‑E‑B ATM Login
         </h1>
 
-        <input
+        {/* Dummy inputs to block browser autofill */}
+        {/* <input
           type="text"
+          name="fake-user"
+          autoComplete="username"
+          style={{ display: "none" }}
+        />
+        <input
+          type="password"
+          name="fake-pass"
+          autoComplete="new-password"
+          style={{ display: "none" }}
+        /> */}
+
+        <input
+          name="accountId"
+          type="text"
+          autoComplete="off"
           placeholder="Account ID"
-          value={accountId}
-          onChange={(e) => setAccountIdInput(e.target.value)}
+          value={formData.accountId}
+          onChange={handleChange}
           className="w-full p-2 border rounded mb-3 text-black placeholder-gray-500 
-          focus:outline-none focus:ring-2 focus:ring-blue-400 transition duration-200"
+            focus:outline-none focus:ring-2 focus:ring-blue-400 transition duration-200"
         />
 
         <input
+          name="pin"
           type="password"
+          autoComplete="new-password"
           placeholder="PIN"
-          value={pin}
-          onChange={(e) => setPin(e.target.value)}
+          value={formData.pin}
+          onChange={handleChange}
           className="w-full p-2 border rounded mb-4 text-black placeholder-gray-500 
-          focus:outline-none focus:ring-2 focus:ring-blue-400 transition duration-200"
+            focus:outline-none focus:ring-2 focus:ring-blue-400 transition duration-200"
         />
 
         <button
           type="submit"
           className="w-full bg-blue-600 hover:bg-blue-700 text-white p-2 rounded font-semibold 
-          transition duration-200"
+            transition duration-200"
         >
           Login
         </button>

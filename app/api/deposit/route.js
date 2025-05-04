@@ -1,6 +1,7 @@
+// app/api/deposit/route.js
 import { cookies } from "next/headers";
-import { connectToDB } from "@/lib/mongoose";
-import Account from "@/models/Account";
+import { NextResponse } from "next/server";
+import { performDeposit } from "@/lib/actions/performDeposit";
 
 export async function POST(req) {
   try {
@@ -8,52 +9,21 @@ export async function POST(req) {
     const accountId = cookieStore.get("accountId")?.value;
 
     if (!accountId) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { "Content-Type": "application/json" },
-      });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const { amount } = await req.json();
-    if (!amount || isNaN(amount) || amount <= 0) {
-      return new Response(JSON.stringify({ error: "Invalid amount" }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      });
+    const numericAmount = parseFloat(amount);
+
+    if (isNaN(numericAmount) || numericAmount <= 0) {
+      return NextResponse.json({ error: "Invalid amount" }, { status: 400 });
     }
 
-    await connectToDB();
-    const account = await Account.findOne({ accountId });
+    const newBalance = await performDeposit(accountId, numericAmount);
 
-    if (!account) {
-      return new Response(JSON.stringify({ error: "Account not found" }), {
-        status: 404,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-
-    account.balance += Number(amount);
-
-    account.transactions.push({
-      type: "deposit",
-      amount: Number(amount),
-      balanceAfter: account.balance,
-    });
-
-    await account.save();
-
-    return new Response(
-      JSON.stringify({ success: true, newBalance: account.balance }),
-      {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
+    return NextResponse.json({ success: true, balance: newBalance });
   } catch (err) {
     console.error("Deposit error:", err);
-    return new Response(JSON.stringify({ error: "Server error" }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }

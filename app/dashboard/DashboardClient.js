@@ -11,26 +11,26 @@ import TransactionHistory from "@/components/TransactionHistory";
 export default function DashboardClient() {
   const [dbConnected, setDbConnected] = useState(null);
 
-  // ✅ useMemo: prevent refetch identity change
-  const fetchBalance = useMemo(
-    () => async () => {
+  // 🧠 Memoized balance fetcher (ensures stable function identity for React Query)
+  const fetchBalance = useMemo(() => {
+    return async () => {
       const res = await axios.get("/api/account", {
         withCredentials: true,
       });
       return res.data;
-    },
-    []
-  );
+    };
+  }, []);
 
+  // 🚀 Balance query with retries and refetch behavior
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ["accountBalance"],
     queryFn: fetchBalance,
-    retry: 2, // optional: auto-retry failed requests
+    retry: 2,
     refetchOnMount: true,
     refetchOnWindowFocus: true,
   });
 
-  // ✅ Fetch MongoDB connection status
+  // 🌐 MongoDB connection check
   useEffect(() => {
     const checkStatus = async () => {
       try {
@@ -66,7 +66,7 @@ export default function DashboardClient() {
 
           {isLoading ? (
             <p className="text-center text-gray-600 mb-2">Loading balance...</p>
-          ) : isError || !data ? (
+          ) : isError || typeof data?.balance !== "number" ? (
             <p className="text-center text-red-600 mb-2">
               Error: {error?.message || "Unable to load balance"}
             </p>
@@ -88,6 +88,7 @@ export default function DashboardClient() {
           )}
         </div>
 
+        {/* 💸 Core components */}
         <div className="flex-grow pr-1 space-y-4">
           <DepositForm />
           <WithdrawForm />

@@ -1,11 +1,13 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-
+import { useDebouncedValue } from "@/lib/hooks/useDebouncedValue";
+import { useDebounce } from "@/lib/hooks/useDebounce";
 export default function DepositForm() {
   const [amount, setAmount] = useState("");
   const [message, setMessage] = useState({ type: "", text: "" });
+  const debouncedAmount = useDebounce(amount, 500);
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
@@ -22,7 +24,6 @@ export default function DepositForm() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["accountBalance"] });
       queryClient.invalidateQueries({ queryKey: ["accountTransactions"] });
-
       setMessage({ type: "success", text: "Deposit successful!" });
       setAmount("");
     },
@@ -31,23 +32,21 @@ export default function DepositForm() {
     },
   });
 
-  const handleDeposit = useCallback(() => {
-    const value = parseFloat(amount);
-    if (isNaN(value) || value <= 0) {
-      setMessage({ type: "error", text: "Enter a valid amount." });
-      return;
+  // 🔁 Trigger auto deposit if valid number & debounce is stable
+  useEffect(() => {
+    const value = parseFloat(debouncedAmount);
+    if (!isNaN(value) && value > 0) {
+      mutation.mutate(value);
     }
-    mutation.mutate(value);
-  }, [amount, mutation]);
+  }, [debouncedAmount]);
 
+  // 🧼 Auto-clear message
   useEffect(() => {
     if (message.text) {
       const timer = setTimeout(() => setMessage({ type: "", text: "" }), 3000);
       return () => clearTimeout(timer);
     }
   }, [message]);
-
-  const isDisabled = useMemo(() => mutation.isPending, [mutation.isPending]);
 
   return (
     <div className="w-full p-4 bg-white rounded shadow mb-4">
@@ -59,17 +58,15 @@ export default function DepositForm() {
         value={amount}
         onChange={(e) => setAmount(e.target.value)}
         className="w-full p-2 border border-gray-300 text-gray-900 placeholder-gray-500 rounded mb-2"
-        disabled={isDisabled}
+        disabled={mutation.isPending}
       />
 
       <button
-        onClick={handleDeposit}
-        disabled={isDisabled}
-        className={`w-full bg-green-600 text-white py-2 rounded hover:bg-green-700 transition font-semibold cursor-pointer ${
-          isDisabled ? "opacity-50 cursor-not-allowed" : ""
-        }`}
+        onClick={() => mutation.mutate(parseFloat(amount))}
+        disabled={mutation.isPending || isNaN(parseFloat(amount))}
+        className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700 transition font-semibold"
       >
-        {isDisabled ? "Depositing..." : "Deposit"}
+        {mutation.isPending ? "Depositing..." : "Deposit"}
       </button>
 
       {message.text && (

@@ -1,44 +1,34 @@
 import { NextResponse } from "next/server";
-import { connectToDB } from "@/lib/mongoose";
-import Account from "@/models/Account";
+import { validateLogin } from "@/lib/actions/validateLogin";
+import { z } from "zod";
 
 const COOKIE_NAME = "accountId";
+const LoginSchema = z.object({
+  accountId: z.string().min(1),
+  pin: z.string().min(1),
+});
 
 export async function POST(req) {
-  try {
-    await connectToDB();
+  const body = await req.json();
+  const result = LoginSchema.safeParse(body);
 
-    const body = await req.json();
-    const { accountId, pin } = body;
-
-    // ✅ Validate required fields
-    if (!accountId || !pin) {
-      return NextResponse.json(
-        { error: "Missing credentials" },
-        { status: 400 }
-      );
-    }
-
-    const account = await Account.findOne({ accountId });
-
-    if (!account || account.pin !== pin) {
-      return NextResponse.json(
-        { error: "Invalid credentials" },
-        { status: 401 }
-      );
-    }
-
-    // ✅ Set session cookie manually
-    const response = NextResponse.json({ success: true });
-
-    response.headers.set(
-      "Set-Cookie",
-      `${COOKIE_NAME}=${accountId}; Path=/; HttpOnly; SameSite=Lax`
-    );
-
-    return response;
-  } catch (err) {
-    console.error("Login error:", err);
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
+  if (!result.success) {
+    return NextResponse.json({ error: "Invalid input" }, { status: 400 });
   }
+
+  const { accountId, pin } = result.data;
+
+  // ✅ Call shared action
+  const account = await validateLogin(accountId, pin);
+
+  if (!account) {
+    return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
+  }
+
+  const res = NextResponse.json({ success: true });
+  res.headers.set(
+    "Set-Cookie",
+    `${COOKIE_NAME}=${accountId}; Path=/; HttpOnly; SameSite=Lax`
+  );
+  return res;
 }

@@ -1,8 +1,6 @@
 import { cookies } from "next/headers";
-import { connectToDB } from "@/lib/mongoose";
-import Account from "@/models/Account";
-
-const DAILY_LIMIT = 500;
+import { NextResponse } from "next/server";
+import { performWithdraw } from "@/lib/actions/performWithdraw";
 
 export async function POST(req) {
   try {
@@ -10,75 +8,25 @@ export async function POST(req) {
     const accountId = cookieStore.get("accountId")?.value;
 
     if (!accountId) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { "Content-Type": "application/json" },
-      });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const { amount } = await req.json();
-    if (!amount || isNaN(amount) || amount <= 0) {
-      return new Response(JSON.stringify({ error: "Invalid amount" }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      });
+    const numericAmount = parseFloat(amount);
+
+    if (isNaN(numericAmount) || numericAmount <= 0) {
+      return NextResponse.json({ error: "Invalid amount" }, { status: 400 });
     }
 
-    await connectToDB();
-    const account = await Account.findOne({ accountId });
+    // ✅ No re-auth needed — cookie is enough
+    const newBalance = await performWithdraw(accountId, numericAmount);
 
-    if (!account) {
-      return new Response(JSON.stringify({ error: "Account not found" }), {
-        status: 404,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-
-    const today = new Date().toISOString().split("T")[0];
-    const isNewDay = account.lastWithdrawDate !== today;
-    const withdrawnToday = isNewDay ? 0 : account.withdrawnToday;
-    const newTotal = withdrawnToday + Number(amount);
-
-    if (newTotal > DAILY_LIMIT) {
-      return new Response(
-        JSON.stringify({ error: `Daily limit of $${DAILY_LIMIT} exceeded.` }),
-        { status: 403, headers: { "Content-Type": "application/json" } }
-      );
-    }
-
-    if (account.balance < amount) {
-      return new Response(JSON.stringify({ error: "Insufficient funds" }), {
-        status: 403,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-
-    // Apply withdrawal
-    account.balance -= Number(amount);
-
-    account.transactions.push({
-      type: "withdraw",
-      amount: Number(amount),
-      balanceAfter: account.balance,
-    });
-    await account.save();
-
-    account.withdrawnToday = newTotal;
-    account.lastWithdrawDate = today;
-    await account.save();
-
-    return new Response(
-      JSON.stringify({ success: true, newBalance: account.balance }),
-      {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
+    return NextResponse.json({ success: true, balance: newBalance });
   } catch (err) {
-    console.error("Withdraw error:", err);
-    return new Response(JSON.stringify({ error: "Server error" }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
+    console.error("Withdraw error:", err.message);
+    return NextResponse.json(
+      { error: err.message || "Server error" },
+      { status: 500 }
+    );
   }
 }

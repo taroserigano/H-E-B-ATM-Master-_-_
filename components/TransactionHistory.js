@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import * as XLSX from "xlsx";
 
@@ -36,39 +36,6 @@ export default function TransactionHistory() {
     XLSX.writeFile(workbook, "transactions.xlsx");
   };
 
-  // 🧠 Memoize transaction list rendering
-  const recentTransactions = useMemo(() => {
-    if (!data?.transactions) return null;
-
-    return data.transactions.slice(0, 10).map((tx, index) => {
-      const dateObj = new Date(tx.date);
-      const dateStr = dateObj.toLocaleDateString();
-      const timeStr = dateObj.toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-      });
-
-      return (
-        <li
-          key={index}
-          className={`px-3 py-2 rounded-md text-sm shadow-sm border font-medium ${
-            tx.type === "deposit"
-              ? "bg-green-100 text-green-900 border-green-300"
-              : "bg-red-100 text-red-900 border-red-300"
-          }`}
-        >
-          <span className="font-semibold capitalize">{tx.type}</span> $
-          {tx.amount} — <span className="text-gray-800">{dateStr}</span>,{" "}
-          <span className="text-gray-700">{timeStr}</span> —{" "}
-          <span className="text-gray-900 font-medium">
-            balance: ${tx.balanceAfter}
-          </span>
-        </li>
-      );
-    });
-  }, [data?.transactions]);
-
   return (
     <div className="mt-6">
       {/* Header */}
@@ -96,7 +63,7 @@ export default function TransactionHistory() {
           visible ? "max-h-[300px] opacity-100" : "max-h-0 opacity-0"
         }`}
       >
-        <div className="overflow-y-auto max-h-[200px] scrollbar-thin scrollbar-thumb-gray-300 rounded-md border border-gray-200 bg-white shadow-inner p-2 space-y-2">
+        <div className="overflow-y-auto max-h-[200px]  scrollbar-thin scrollbar-thumb-gray-300 rounded-md border border-gray-200 bg-white shadow-inner p-2 space-y-2">
           {isLoading ? (
             <p className="text-center text-sm text-gray-400">
               Loading transactions...
@@ -105,12 +72,41 @@ export default function TransactionHistory() {
             <p className="text-center text-sm text-red-600">
               Error loading transactions
             </p>
-          ) : !recentTransactions ? (
+          ) : data?.transactions?.length === 0 ? (
             <p className="text-center text-sm text-gray-400">
               No transactions yet.
             </p>
           ) : (
-            <ul className="space-y-2">{recentTransactions}</ul>
+            <ul className="space-y-2">
+              {data.transactions.slice(0, 10).map((tx, index) => {
+                const dateObj = new Date(tx.date);
+                const dateStr = dateObj.toLocaleDateString();
+                const timeStr = dateObj.toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  second: "2-digit",
+                });
+
+                return (
+                  <li
+                    key={index}
+                    className={`px-3 py-2 rounded-md text-sm shadow-sm border font-medium ${
+                      tx.type === "deposit"
+                        ? "bg-green-100 text-green-900 border-green-300"
+                        : "bg-red-100 text-red-900 border-red-300"
+                    }`}
+                  >
+                    <span className="font-semibold capitalize">{tx.type}</span>{" "}
+                    ${tx.amount} —{" "}
+                    <span className="text-gray-800">{dateStr}</span>,{" "}
+                    <span className="text-gray-700">{timeStr}</span> —{" "}
+                    <span className="text-gray-900 font-medium">
+                      balance: ${tx.balanceAfter}
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
           )}
         </div>
       </div>

@@ -10,6 +10,7 @@ export const metadata = {
     default: "H-E-B ATM",
     template: "%s | H-E-B ATM",
   },
+
   description:
     "Securely manage your H-E-B ATM account. View balance, deposit, and withdraw.",
   metadataBase: new URL("https://your-domain.com"), // ← important for OG links
