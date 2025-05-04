@@ -21,7 +21,7 @@ export default function DepositForm() {
       queryClient.invalidateQueries({ queryKey: ["accountTransactions"] });
       setMessage({
         type: "success",
-        text: `✔ ${variables.toFixed(2)} Deposited `,
+        text: `✔ Deposited $${variables.toFixed(2)}`,
       });
       setAmount("");
     },
@@ -37,7 +37,6 @@ export default function DepositForm() {
 
     if (!raw) {
       setMessage({ type: "error", text: "Amount is required." });
-      setAmount("");
       return;
     }
 
@@ -45,22 +44,16 @@ export default function DepositForm() {
 
     if (isNaN(value)) {
       setMessage({ type: "error", text: "Amount must be a number." });
-      setAmount("");
-
       return;
     }
 
     if (value <= 0) {
       setMessage({ type: "error", text: "Amount must be greater than 0." });
-      setAmount("");
-
       return;
     }
 
     if (!/^\d+(\.\d{1,2})?$/.test(raw)) {
       setMessage({ type: "error", text: "Max 2 decimal places allowed." });
-      setAmount("");
-
       return;
     }
 
@@ -98,7 +91,7 @@ export default function DepositForm() {
       </div>
 
       <input
-        type="text"
+        type="number"
         placeholder="Amount"
         value={amount}
         onChange={(e) => setAmount(e.target.value)}

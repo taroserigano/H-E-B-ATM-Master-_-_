@@ -9,7 +9,6 @@ export default function WithdrawForm() {
   const [message, setMessage] = useState({ type: "", text: "" });
   const queryClient = useQueryClient();
 
-  // 🧠 Fetch daily withdrawal limit info
   const {
     data: limitData,
     isLoading: isLimitLoading,
@@ -19,7 +18,7 @@ export default function WithdrawForm() {
     queryKey: ["withdrawalLimit"],
     queryFn: async () => {
       const { data } = await axios.get("/api/account/limit", {
-        withCredentials: true, // ✅ include cookie
+        withCredentials: true,
       });
       return data;
     },
@@ -32,11 +31,14 @@ export default function WithdrawForm() {
       const { data } = await axios.post("/api/withdraw", { amount: value });
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["accountBalance"] });
       queryClient.invalidateQueries({ queryKey: ["accountTransactions"] });
       queryClient.invalidateQueries({ queryKey: ["withdrawalLimit"] });
-      setMessage({ type: "success", text: "Withdraw successful!" });
+      setMessage({
+        type: "success",
+        text: `✔  $${variables.toFixed(2)} withdrawn`,
+      });
       setAmount("");
     },
     onError: (err) => {
@@ -61,9 +63,7 @@ export default function WithdrawForm() {
       ) {
         setMessage({
           type: "error",
-          text: `You can only withdraw up to $${limitData.remaining.toFixed(
-            2
-          )} today.`,
+          text: `Max $${limitData.remaining.toFixed(2)} remaining today.`,
         });
         return;
       }
@@ -90,9 +90,19 @@ export default function WithdrawForm() {
       onSubmit={handleWithdraw}
       className="bg-white p-4 rounded shadow mb-4"
     >
-      <h2 className="text-lg font-bold text-gray-800 mb-2">Withdraw Funds</h2>
+      <div className="flex justify-between items-center mb-2">
+        <h2 className="text-lg font-bold text-gray-800">Withdraw Funds</h2>
+        {message.text && (
+          <span
+            className={`text-sm ${
+              message.type === "error" ? "text-red-600" : "text-blue-600"
+            }`}
+          >
+            {message.text}
+          </span>
+        )}
+      </div>
 
-      {/* 🧠 Daily limit status block */}
       {isLimitLoading ? (
         <p className="text-sm text-gray-400 mb-2">Loading daily limit...</p>
       ) : isLimitError ? (
@@ -125,16 +135,6 @@ export default function WithdrawForm() {
       >
         {isDisabled ? "Withdrawing..." : "Withdraw"}
       </button>
-
-      {message.text && (
-        <p
-          className={`text-sm mt-2 ${
-            message.type === "error" ? "text-red-600" : "text-green-600"
-          }`}
-        >
-          {message.text}
-        </p>
-      )}
     </form>
   );
 }

@@ -84,7 +84,7 @@ export default function LoginPage() {
           H‑E‑B ATM Login
         </h1>
 
-        <input
+        {/* <input
           type="text"
           name="fake-user"
           autoComplete="username"
@@ -95,7 +95,7 @@ export default function LoginPage() {
           name="fake-pass"
           autoComplete="new-password"
           style={{ display: "none" }}
-        />
+        /> */}
 
         <input
           name="accountId"
