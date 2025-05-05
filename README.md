@@ -6,12 +6,12 @@ A full-stack ATM simulation built with **Next.js 15**, **React Query**, **Contex
 
 ## Overview
 
-This app delivers **real-time responsiveness** and **production-grade reliability**.
+This app delivers **real-time responsiveness** and **high reliability**.
 
-Every transaction—whether a deposit or withdrawal—is processed instantly in MongoDB and reflected in the UI without delay. Thanks to **optimistic UI updates**, users see updated balances and transaction history the moment they take action.
+Every transaction—whether a deposit or withdrawal—is processed instantly in MongoDB and reflected in the UI immediately. Thanks to **optimistic UI updates**, users see updated balances and transaction history the moment they take action.
 
 All data is automatically **cached and synced** through React Query. This ensures:
-- Fast initial loads through prefetching and hydration
+- Ultra fast initial loads through prefetching and hydration
 - Seamless updates after every action
 - Immediate rollback on failure
 - Accurate, up-to-date views across all components
@@ -47,6 +47,19 @@ Built for speed and UI fluidity:
 - `useCallback`: memoizes stable event handlers to reduce effect triggers and renders.
 
 These combined techniques ensure the UI remains **fast, lean, and responsive**.
+
+---
+
+## 📊 Filtering & Pagination
+
+### ✅ Filtering
+Users can filter transactions (e.g. "Deposit" or "Withdraw") before viewing or exporting to Excel. This improves usability and lets users focus on relevant records.
+
+### ✅ Pagination
+Transaction history is paginated using React Query + backend slicing:
+- Users can navigate across pages using Next/Prev.
+- React Query handles **query deduplication**, **previous state retention**, and **smooth loading**.
+- Prevents loading large datasets all at once, enhancing performance.
 
 ---
 
