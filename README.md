@@ -77,6 +77,7 @@ This avoids token storage in JavaScript and ensures consistent behavior across t
 - Stores account balance, PIN, and full transaction history.
 - Tracks `withdrawnToday` and `lastWithdrawDate` for enforcing daily limits.
 - Each transaction includes amount, type, date, and resulting balance.
+- Added Indexing to speed up lookup during login and API access
 
 Combines native MongoDB driver performance with schema validation via Mongoose.
 
@@ -100,6 +101,14 @@ All login input is validated on the server using **Zod**, ensuring clean, typed,
 - Memoized UI and logic for performance
 - Cookie-based session handling
 - Middleware-protected API endpoints
+
+---
+
+## 📘 SEO Metadata Configuration (Next.js 15)
+
+The app leverages **Next.js 15 App Router**'s built-in metadata system for better search engine visibility and richer social previews.
+
+Each page defines structured metadata, including:
 
 ---
 
