@@ -23,7 +23,22 @@ From the user’s perspective, the experience feels **instant and reliable**—s
 
 ---
 
-## Performance & Caching
+## ✅✅ Core Features
+
+- Secure PIN login
+- Real-time balance display
+- Deposits and withdrawals with validation
+- Daily withdrawal limit logic
+- Optimistic UI feedback
+- Transaction history with Excel export
+- Server prefetching with fast hydration
+- Memoized UI and logic for performance
+- Cookie-based session handling
+- Middleware-protected API endpoints
+
+---
+
+## ✅ Performance & Caching
 
 Built for speed and UI fluidity:
 
@@ -32,11 +47,11 @@ Built for speed and UI fluidity:
 - Optimistic updates make transactions feel immediate.
 - Manual cache invalidation ensures precise updates—no over-fetching.
 
-### Data Prefetching
+### ✅ Data Prefetching
 - The dashboard preloads balance on the server using `prefetchQuery` + `HydrationBoundary`.
 - Results in fast time-to-content without client-side loading delays.
 
-### Memoization for Efficiency
+### ✅ Memoization for Efficiency
 - `React.memo`: avoids unnecessary re-renders.
 - `useMemo`: caches expensive values (like formatted balances).
 - `useCallback`: memoizes stable event handlers to reduce effect triggers and renders.
@@ -64,7 +79,7 @@ Transaction history is paginated using React Query + backend slicing:
 
 --- 
 
-## Authentication & Session Management
+## ✅ Authentication & Session Management
 
 - Login sets an `accountId` in an **HttpOnly cookie**.
 - API routes are protected using middleware.
@@ -74,7 +89,7 @@ This avoids token storage in JavaScript and ensures consistent behavior across t
 
 ---
 
-## MongoDB Persistence
+## ✅ MongoDB Persistence
 
 - Stores account balance, PIN, and full transaction history.
 - Tracks `withdrawnToday` and `lastWithdrawDate` for enforcing daily limits.
@@ -85,28 +100,13 @@ Combines native MongoDB driver performance with schema validation via Mongoose.
 
 ---
 
-## Zod Validation
+## ✅ Zod Validation
 
 All login input is validated on the server using **Zod**, ensuring clean, typed, and secure request payloads.
 
 ---
 
-## Core Features
-
-- Secure PIN login
-- Real-time balance display
-- Deposits and withdrawals with validation
-- Daily withdrawal limit logic
-- Optimistic UI feedback
-- Transaction history with Excel export
-- Server prefetching with fast hydration
-- Memoized UI and logic for performance
-- Cookie-based session handling
-- Middleware-protected API endpoints
-
----
-
-## SEO Metadata Configuration (Next.js 15)
+## ✅ SEO Metadata Configuration (Next.js 15)
 
 The app leverages **Next.js 15 App Router**'s built-in metadata system for better SEO visibility and richer social previews.
 
