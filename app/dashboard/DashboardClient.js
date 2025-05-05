@@ -93,7 +93,7 @@ export default function DashboardClient() {
                 dbConnected ? "text-green-600" : "text-red-600"
               }`}
             >
-              MongoDB Cloud: {dbConnected ? "Connected" : "Not Connected"}
+              MongoDB Cloud: {dbConnected ? "✅ Connected" : "Not Connected"}
             </p>
           )}
         </div>
