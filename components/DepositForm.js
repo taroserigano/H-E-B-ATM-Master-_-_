@@ -145,7 +145,7 @@ export default function DepositForm() {
       </div>
 
       <input
-        type="number"
+        type="text"
         placeholder="Amount"
         value={amount}
         onChange={(e) => setAmount(e.target.value)}

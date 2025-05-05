@@ -203,7 +203,7 @@ export default function WithdrawForm() {
         </p>
       ) : limitData ? (
         <div className="text-sm mb-3 text-green-600 font-semibold">
-          ✅ Remaining: ${limitData.remaining}
+          ✅ Daily Remaining: ${limitData.remaining}
         </div>
       ) : null}
 

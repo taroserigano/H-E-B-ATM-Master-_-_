@@ -8,7 +8,7 @@ import { useSession } from "@/context/session/SessionContext";
 import { useAccount } from "@/context/account/AccountContext";
 
 export default function LoginPage() {
-  const [formData, setFormData] = useState({ accountId: "1111", pin: "123" });
+  const [formData, setFormData] = useState({ accountId: "", pin: "" });
   const [error, setError] = useState("");
 
   const debouncedAccountId = useDebounce(formData.accountId, 800);
