@@ -82,7 +82,7 @@ React Query powers efficient and reliable data handling throughout the app:
 - View real-time balance
 - Deposit & withdraw with validation
 - Daily withdrawal limits
-- Export history to Excel
+- Export transaction history to Excel sheets
 - Optimistic UI updates
 - Protected routes & secure session handling
 
