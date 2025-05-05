@@ -2,7 +2,21 @@
 
 A full-stack ATM simulation built with **Next.js 15**, **React Query**, and **MongoDB**. It supports PIN-based login, real-time balance, deposits, withdrawals with daily limits, and transaction history with Excel export.
 
-Built with performance, clarity, and production-readiness in mind—using secure session handling, smart caching, optimistic rendering, and React best practices.
+---
+
+## Overview
+
+This app delivers **real-time responsiveness** and **production-grade reliability**.
+
+Every transaction—whether a deposit or withdrawal—is processed instantly in MongoDB and reflected in the UI without delay. Thanks to **optimistic UI updates**, users see updated balances and transaction history the moment they take action.
+
+All data is automatically **cached and synced** through React Query. This ensures:
+- Fast initial loads through prefetching and hydration
+- Seamless updates after every action
+- Immediate rollback on failure
+- Accurate, up-to-date views across all components
+
+From the user’s perspective, the experience feels **instant and reliable**—similar to a real banking application.
 
 ---
 
@@ -16,60 +30,64 @@ Use one of the demo accounts below to explore the app.
 
 ## Performance & Caching
 
-This app is tuned for responsiveness and speed using multiple strategies:
+Built for speed and UI fluidity:
 
 ### React Query + Optimistic UI
-- Handles all API caching, syncing, and retries.
-- **Optimistic updates**: balance and transaction list update instantly while awaiting confirmation, with rollback if needed.
-- Cache invalidation is scoped to the impacted queries—no redundant re-fetching.
+- Handles all API calls, caching, retries, and syncing.
+- Optimistic updates make transactions feel immediate.
+- Manual cache invalidation ensures precise updates—no over-fetching.
 
-### Data Prefetching with Server Components
-- On page load, balance data is preloaded on the server using `prefetchQuery` + `HydrationBoundary`.
-- This avoids client-side loading delays and ensures fast first paint.
+### Data Prefetching
+- The dashboard preloads balance on the server using `prefetchQuery` + `HydrationBoundary`.
+- Results in fast time-to-content without client-side loading delays.
 
-### Memoization for Stability
-- `React.memo`: avoids re-renders for static components.
-- `useMemo`: caches stable values like formatted data and query functions.
-- `useCallback`: keeps event handlers like `handleSubmit` stable and avoids triggering unnecessary effects.
+### Memoization for Efficiency
+- `React.memo`: avoids unnecessary re-renders.
+- `useMemo`: caches expensive values (like formatted balances).
+- `useCallback`: memoizes stable event handlers to reduce effect triggers and renders.
 
-Together, these techniques reduce client-side rendering cost, improve perceived performance, and make the app feel responsive under real usage conditions.
+These combined techniques ensure the UI remains **fast, lean, and responsive**.
 
 ---
 
 ## Authentication & Session Management
 
-- Auth is handled via **HttpOnly cookies** for security and reliability.
-- Middleware enforces auth across all API routes.
-- Session state persists across tabs and refreshes, and logout clears the session server-side.
+- Login sets an `accountId` in an **HttpOnly cookie**.
+- API routes are protected using middleware.
+- Logout clears the session using secure `Set-Cookie`.
+
+This avoids token storage in JavaScript and ensures consistent behavior across tabs and reloads.
 
 ---
 
 ## MongoDB Persistence
 
-- Stores user account data, transaction history, and daily withdrawal tracking.
-- Combines the native MongoDB driver for performance with Mongoose for schema validation.
-- Each transaction captures amount, timestamp, and resulting balance for auditability.
+- Stores account balance, PIN, and full transaction history.
+- Tracks `withdrawnToday` and `lastWithdrawDate` for enforcing daily limits.
+- Each transaction includes amount, type, date, and resulting balance.
+
+Combines native MongoDB driver performance with schema validation via Mongoose.
 
 ---
 
 ## Zod Validation
 
-- Login input is validated server-side using **Zod**, ensuring clean, typed, and secure input handling.
+All login input is validated on the server using **Zod**, ensuring clean, typed, and secure request payloads.
 
 ---
 
 ## Core Features
 
-- Secure PIN-based login
-- Real-time balance view
-- Deposits and withdrawals
-- Daily withdrawal limits
-- Optimistic UI updates
-- Excel transaction export
-- Prefetched server data for fast hydration
-- Memoized components and logic
-- Cookie-based session auth
-- Route-level protection middleware
+- Secure PIN login
+- Real-time balance display
+- Deposits and withdrawals with validation
+- Daily withdrawal limit logic
+- Optimistic UI feedback
+- Transaction history with Excel export
+- Server prefetching with fast hydration
+- Memoized UI and logic for performance
+- Cookie-based session handling
+- Middleware-protected API endpoints
 
 ---
 
