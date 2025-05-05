@@ -1,8 +1,4 @@
-// ✅ This is a SERVER COMPONENT in Next.js 15
-import dynamic from "next/dynamic";
-import { memo } from "react";
-
-// 🌐 Global page metadata
+// Page metadata for SEO and social sharing
 export const metadata = {
   title: "Dashboard | H-E-B ATM",
   description:
@@ -10,7 +6,7 @@ export const metadata = {
   openGraph: {
     title: "Dashboard | H-E-B ATM",
     description: "Your secure H-E-B ATM dashboard.",
-    url: "https://heb-atm.com/dashboard",
+    url: "https://h-e-b-app-atm-master.vercel.app/dashboard",
     siteName: "H-E-B ATM",
     type: "website",
   },
@@ -21,18 +17,12 @@ export const metadata = {
       "Securely manage your ATM account with deposits, withdrawals, and history.",
   },
   icons: {
-    icon: "/heb-logo.png", // ✅ this line sets the favicon site-wide
+    icon: "/heb-logo.png",
   },
 };
 
-// 🧠 Dynamically import the Client Component with a loading fallback
-const DashboardClient = dynamic(() => import("./DashboardClient"), {});
-
-// 🚀 Memoize the client-only Dashboard to avoid re-renders
-const MemoizedDashboard = memo(function DashboardWrapper() {
-  return <DashboardClient />;
-});
+import DashboardClient from "./DashboardClient";
 
 export default function DashboardPage() {
-  return <MemoizedDashboard />;
+  return <DashboardClient />;
 }

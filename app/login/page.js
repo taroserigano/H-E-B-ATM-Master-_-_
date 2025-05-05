@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import axios from "axios"; // ✅ import axios
+import axios from "axios";
 import { useDebounce } from "@/lib/hooks/useDebounce";
 import { useSession } from "@/context/session/SessionContext";
 import { useAccount } from "@/context/account/AccountContext";
@@ -18,6 +18,7 @@ export default function LoginPage() {
   const { setAccountId } = useSession();
   const { dispatch } = useAccount();
 
+  // Handles login request and balance fetch
   const handleSubmit = useCallback(async () => {
     const { accountId, pin } = formData;
     if (!accountId || !pin) return;
@@ -25,12 +26,12 @@ export default function LoginPage() {
     setError("");
 
     try {
-      // ✅ Login request via axios
+      // Login request
       await axios.post("/api/login", { accountId, pin });
 
       setAccountId(accountId);
 
-      // ✅ Balance fetch via axios
+      // Fetch balance after login
       const { data } = await axios.get("/api/balance", {
         withCredentials: true,
       });
@@ -53,12 +54,14 @@ export default function LoginPage() {
     }
   }, [formData, dispatch, router, setAccountId]);
 
+  // Auto-submit when both inputs are debounced
   useEffect(() => {
     if (debouncedAccountId && debouncedPin) {
       handleSubmit();
     }
   }, [debouncedAccountId, debouncedPin, handleSubmit]);
 
+  // Input change handler
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -83,19 +86,6 @@ export default function LoginPage() {
         <h1 className="text-2xl font-bold text-center text-red-600 mb-6">
           H‑E‑B ATM Login
         </h1>
-
-        {/* <input
-          type="text"
-          name="fake-user"
-          autoComplete="username"
-          style={{ display: "none" }}
-        />
-        <input
-          type="password"
-          name="fake-pass"
-          autoComplete="new-password"
-          style={{ display: "none" }}
-        /> */}
 
         <input
           name="accountId"

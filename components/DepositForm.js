@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 
+// Deposit form component with optimistic updates
 export default function DepositForm() {
   const [amount, setAmount] = useState("");
   const [message, setMessage] = useState({ type: "", text: "" });
@@ -17,7 +18,7 @@ export default function DepositForm() {
       return data;
     },
 
-    // 🧠 Optimistically update balance + transactions
+    // Optimistically update balance and transactions
     onMutate: async (value) => {
       await queryClient.cancelQueries({ queryKey: ["accountBalance"] });
       await queryClient.cancelQueries({ queryKey: ["accountTransactions"] });
@@ -50,6 +51,7 @@ export default function DepositForm() {
       return { prevBalance, prevTransactions };
     },
 
+    // Rollback if error occurs
     onError: (err, _, context) => {
       if (context?.prevBalance) {
         queryClient.setQueryData(["accountBalance"], context.prevBalance);
@@ -66,6 +68,7 @@ export default function DepositForm() {
       setMessage({ type: "error", text: errorMsg });
     },
 
+    // Show confirmation message on success
     onSuccess: (_, value) => {
       setMessage({
         type: "success",
@@ -74,12 +77,14 @@ export default function DepositForm() {
       setAmount("");
     },
 
+    // Always invalidate cache to re-fetch fresh data
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["accountBalance"] });
       queryClient.invalidateQueries({ queryKey: ["accountTransactions"] });
     },
   });
 
+  // Form submit handler with validation
   const handleSubmit = () => {
     const raw = amount.trim();
 
@@ -116,6 +121,7 @@ export default function DepositForm() {
     mutation.mutate(value);
   };
 
+  // Clear message after a delay
   useEffect(() => {
     if (message.text) {
       const timer = setTimeout(() => setMessage({ type: "", text: "" }), 3000);

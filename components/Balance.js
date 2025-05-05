@@ -4,7 +4,9 @@ import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import axios from "axios";
 
+// Component to display current account balance
 export default function Balance() {
+  // Fetch balance using React Query
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ["accountBalance"],
     queryFn: async () => {
@@ -15,9 +17,10 @@ export default function Balance() {
     },
     refetchOnMount: true,
     refetchOnWindowFocus: true,
-    staleTime: 10000, // optional performance boost
+    staleTime: 10000, // Optional: reduces refetches for 10s
   });
 
+  // Format balance value
   const formattedBalance = useMemo(() => {
     if (typeof data?.balance === "number") {
       return `$${data.balance.toFixed(2)}`;

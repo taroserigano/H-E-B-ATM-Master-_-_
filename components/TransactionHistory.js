@@ -6,11 +6,13 @@ import axios from "axios";
 import * as XLSX from "xlsx";
 import { FixedSizeList as List } from "react-window";
 
+// Transaction history with filter, export, and virtualization
 export default function TransactionHistory() {
   const [visible, setVisible] = useState(false);
   const [filterType, setFilterType] = useState("all");
   const [exportLimit, setExportLimit] = useState("100");
 
+  // Fetch all transactions (up to 1000)
   const { data, isLoading, isError } = useQuery({
     queryKey: ["accountTransactions"],
     queryFn: async () => {
@@ -23,9 +25,11 @@ export default function TransactionHistory() {
     refetchOnWindowFocus: true,
   });
 
+  // Determine export limit
   const limitValue =
     exportLimit === "all" ? Infinity : parseInt(exportLimit, 10);
 
+  // Apply filter and limit
   const filteredTransactions = useMemo(() => {
     if (!data?.transactions) return [];
     return data.transactions
@@ -33,6 +37,7 @@ export default function TransactionHistory() {
       .slice(0, limitValue);
   }, [data, filterType, limitValue]);
 
+  // Export filtered transactions to Excel
   const exportToExcel = async () => {
     if (!filteredTransactions.length) return;
     const rows = filteredTransactions.map((tx) => ({
@@ -47,6 +52,7 @@ export default function TransactionHistory() {
     XLSX.writeFile(workbook, "transactions.xlsx");
   };
 
+  // Render a single transaction in 2 stacked rows (virtualized)
   const Row = ({ index, style }) => {
     const tx = filteredTransactions[index];
     const dateObj = new Date(tx.date);
@@ -57,21 +63,28 @@ export default function TransactionHistory() {
       second: "2-digit",
     });
 
+    const baseClass =
+      tx.type === "deposit"
+        ? "bg-green-100 text-green-900 border-green-300"
+        : "bg-red-100 text-red-900 border-red-300";
+
     return (
       <div style={{ ...style, padding: "0 12px", boxSizing: "border-box" }}>
         <div
-          className={`w-full px-3 py-2 rounded-md text-sm shadow-sm border font-medium ${
-            tx.type === "deposit"
-              ? "bg-green-100 text-green-900 border-green-300"
-              : "bg-red-100 text-red-900 border-red-300"
-          }`}
+          className={`w-full px-3 py-1 rounded-md text-sm shadow-sm border font-medium ${baseClass}`}
         >
-          <span className="font-semibold capitalize">{tx.type}</span> $
-          {tx.amount} — <span className="text-gray-800">{dateStr}</span>,{" "}
-          <span className="text-gray-700">{timeStr}</span> —{" "}
-          <span className="text-gray-900 font-medium">
-            balance: ${tx.balanceAfter}
-          </span>
+          <div className="flex justify-between">
+            <span className="capitalize font-semibold">{tx.type}</span>
+            <span>${tx.amount}</span>
+          </div>
+          <div className="flex justify-between text-gray-700 text-xs pt-1">
+            <span>
+              {dateStr}, {timeStr}
+            </span>
+            <span className="font-medium text-gray-900">
+              balance: ${tx.balanceAfter}
+            </span>
+          </div>
         </div>
       </div>
     );
@@ -80,6 +93,7 @@ export default function TransactionHistory() {
   return (
     <div className="mt-6">
       <div className="flex flex-wrap justify-between items-center gap-2 mb-2">
+        {/* Toggle visibility */}
         <button
           onClick={() => setVisible((v) => !v)}
           className="bg-gray-200 hover:bg-gray-300 text-gray-800 text-sm font-semibold py-1 px-3 rounded shadow transition"
@@ -89,6 +103,7 @@ export default function TransactionHistory() {
 
         {visible && (
           <div className="flex flex-wrap gap-2 items-center">
+            {/* Filter by type */}
             <select
               value={filterType}
               onChange={(e) => setFilterType(e.target.value)}
@@ -99,6 +114,7 @@ export default function TransactionHistory() {
               <option value="withdraw">Withdrawals</option>
             </select>
 
+            {/* Limit how many rows to export */}
             <select
               value={exportLimit}
               onChange={(e) => setExportLimit(e.target.value)}
@@ -110,6 +126,7 @@ export default function TransactionHistory() {
               <option value="all">All</option>
             </select>
 
+            {/* Export button */}
             <button
               onClick={exportToExcel}
               className="bg-green-600 hover:bg-green-700 text-white text-sm font-semibold py-1 px-3 rounded shadow transition"
@@ -120,6 +137,7 @@ export default function TransactionHistory() {
         )}
       </div>
 
+      {/* Transaction list container with smooth expand/collapse */}
       <div
         className={`transition-all duration-300 overflow-hidden ${
           visible ? "max-h-[300px] opacity-100" : "max-h-0 opacity-0"
@@ -139,10 +157,11 @@ export default function TransactionHistory() {
               No matching transactions.
             </p>
           ) : (
+            // Virtualized list for performance
             <List
               height={200}
               itemCount={filteredTransactions.length}
-              itemSize={42}
+              itemSize={58} // Increased to fit 2 rows
               width="100%"
             >
               {Row}

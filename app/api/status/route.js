@@ -1,5 +1,6 @@
 import clientPromise from "@/lib/mongodb";
 
+// Check MongoDB connection
 export async function GET() {
   try {
     const client = await clientPromise;

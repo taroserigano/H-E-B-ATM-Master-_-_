@@ -4,11 +4,13 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 
+// Withdraw form with optimistic updates and daily limit enforcement
 export default function WithdrawForm() {
   const [amount, setAmount] = useState("");
   const [message, setMessage] = useState({ type: "", text: "" });
   const queryClient = useQueryClient();
 
+  // Fetch daily withdrawal limit
   const {
     data: limitData,
     isLoading: isLimitLoading,
@@ -26,13 +28,14 @@ export default function WithdrawForm() {
     refetchOnWindowFocus: true,
   });
 
+  // Withdraw mutation with optimistic UI updates
   const withdrawMutation = useMutation({
     mutationFn: async (value) => {
       const { data } = await axios.post("/api/withdraw", { amount: value });
       return data;
     },
 
-    // 🧠 Optimistically update cache
+    // Optimistically update balance, transactions, and limit
     onMutate: async (value) => {
       await queryClient.cancelQueries({ queryKey: ["accountBalance"] });
       await queryClient.cancelQueries({ queryKey: ["accountTransactions"] });
@@ -75,6 +78,7 @@ export default function WithdrawForm() {
       return { prevBalance, prevTransactions, prevLimit };
     },
 
+    // Rollback on error
     onError: (err, _, context) => {
       if (context?.prevBalance)
         queryClient.setQueryData(["accountBalance"], context.prevBalance);
@@ -91,6 +95,7 @@ export default function WithdrawForm() {
       setMessage({ type: "error", text: errorMsg });
     },
 
+    // Show success message and reset form
     onSuccess: (_, value) => {
       setMessage({
         type: "success",
@@ -99,6 +104,7 @@ export default function WithdrawForm() {
       setAmount("");
     },
 
+    // Always refetch latest state
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["accountBalance"] });
       queryClient.invalidateQueries({ queryKey: ["accountTransactions"] });
@@ -106,6 +112,7 @@ export default function WithdrawForm() {
     },
   });
 
+  // Form submit handler with validation and limit check
   const handleWithdraw = useCallback(
     (e) => {
       e.preventDefault();
@@ -155,6 +162,7 @@ export default function WithdrawForm() {
     [amount, withdrawMutation, limitData]
   );
 
+  // Auto-clear messages after 3 seconds
   useEffect(() => {
     if (message.text) {
       const timer = setTimeout(() => setMessage({ type: "", text: "" }), 3000);
@@ -162,6 +170,7 @@ export default function WithdrawForm() {
     }
   }, [message]);
 
+  // Disable button while request is pending
   const isDisabled = useMemo(
     () => withdrawMutation.isPending,
     [withdrawMutation.isPending]
@@ -185,6 +194,7 @@ export default function WithdrawForm() {
         )}
       </div>
 
+      {/* Show withdrawal limit status */}
       {isLimitLoading ? (
         <p className="text-sm text-gray-400 mb-2">Loading daily limit...</p>
       ) : isLimitError ? (

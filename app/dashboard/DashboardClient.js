@@ -11,7 +11,7 @@ import TransactionHistory from "@/components/TransactionHistory";
 export default function DashboardClient() {
   const [dbConnected, setDbConnected] = useState(null);
 
-  // 🧠 Memoized balance fetcher (ensures stable function identity for React Query)
+  // Memoized balance fetcher for React Query
   const fetchBalance = useMemo(() => {
     return async () => {
       const res = await axios.get("/api/account", {
@@ -21,16 +21,16 @@ export default function DashboardClient() {
     };
   }, []);
 
-  // 🚀 Balance query with retries and refetch behavior
+  // Balance query with retries and refetch options
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ["accountBalance"],
     queryFn: fetchBalance,
     retry: 2,
     refetchOnMount: true,
-    refetchOnWindowFocus: true,
+    refetchOnWindowFocus: true, // automatic re-fetch when user goes back to this tab
   });
 
-  // 🌐 MongoDB connection check
+  // MongoDB connection check
   useEffect(() => {
     const checkStatus = async () => {
       try {
@@ -64,18 +64,28 @@ export default function DashboardClient() {
             Welcome to H‑E‑B ATM
           </h1>
 
-          {isLoading ? (
-            <p className="text-center text-gray-600 mb-2">Loading balance...</p>
-          ) : isError || typeof data?.balance !== "number" ? (
-            <p className="text-center text-gray-600 mb-2">
-              {error?.message || "Loading"}
-            </p>
-          ) : (
-            <p className="text-center text-gray-800 text-lg font-semibold mb-2">
-              Current Balance:{" "}
-              <span className="text-black">${data.balance.toFixed(2)}</span>
-            </p>
-          )}
+          {(() => {
+            if (isLoading) {
+              return (
+                <p className="text-center text-gray-600 mb-2">
+                  Loading balance...
+                </p>
+              );
+            }
+            if (isError || typeof data?.balance !== "number") {
+              return (
+                <p className="text-center text-gray-600 mb-2">
+                  {error?.message || "Loading"}
+                </p>
+              );
+            }
+            return (
+              <p className="text-center text-gray-800 text-lg font-semibold mb-2">
+                Current Balance:{" "}
+                <span className="text-black">${data.balance.toFixed(2)}</span>
+              </p>
+            );
+          })()}
 
           {dbConnected !== null && (
             <p
@@ -83,12 +93,12 @@ export default function DashboardClient() {
                 dbConnected ? "text-green-600" : "text-red-600"
               }`}
             >
-              MongoDB Cloud: {dbConnected ? "Connected ✅" : "Not Connected ❌"}
+              MongoDB Cloud: {dbConnected ? "Connected" : "Not Connected"}
             </p>
           )}
         </div>
 
-        {/* 💸 Core components */}
+        {/* Render core ATM components */}
         <div className="flex-grow pr-1 space-y-4">
           <DepositForm />
           <WithdrawForm />

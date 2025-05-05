@@ -6,15 +6,15 @@ const COOKIE_NAME = "accountId";
 export function middleware(req) {
   const { pathname } = req.nextUrl;
 
-  // ✅ Normalize for case-insensitive matching
+  // Normalize for case-insensitive matching
   const lowerPath = pathname.toLowerCase();
 
-  // ✅ Allow public routes
+  // Allow public routes
   if (PUBLIC_ROUTES.includes(lowerPath)) {
     return NextResponse.next();
   }
 
-  // ✅ Protect all other /api routes
+  // rotect all other /api routes
   if (pathname.startsWith("/api/")) {
     const hasSession = req.cookies.get(COOKIE_NAME);
 
@@ -29,6 +29,7 @@ export function middleware(req) {
   return NextResponse.next();
 }
 
+// Apply to all api routes
 export const config = {
   matcher: ["/api/:path*"],
 };
