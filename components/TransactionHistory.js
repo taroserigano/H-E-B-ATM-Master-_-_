@@ -82,7 +82,7 @@ export default function TransactionHistory() {
               {dateStr}, {timeStr}
             </span>
             <span className="font-medium text-gray-900">
-              balance: ${tx.balanceAfter}
+              ${tx.balanceAfter}
             </span>
           </div>
         </div>
