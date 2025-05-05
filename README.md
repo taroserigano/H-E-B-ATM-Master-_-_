@@ -4,6 +4,12 @@ This is a full-stack ATM simulation built with **Next.js**, **React Query**, and
 
 The app is structured with **clean architecture**, **secure session handling**, and **real-world performance techniques** that scale.
 
+## Live Demo
+
+🔗 [https://h-e-b-app-atm-master.vercel.app](https://h-e-b-app-atm-master.vercel.app)
+
+Use one of the demo accounts listed below to explore the app.
+
 ---
 
 ## ⚙️ Key Technologies & Benefits
