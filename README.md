@@ -38,6 +38,10 @@ React Query powers efficient and reliable data handling throughout the app:
 - 🛡️ **Rollback Safety** – Automatically reverts UI changes if the server request fails.
 - 🔗 **State Sharing** – Shares and syncs data across views and tabs out of the box.
 
+### Data Prefetching with Server Components
+- On dashboard page load, balance data is preloaded on the server using `prefetchQuery` + `HydrationBoundary`.
+- This avoids client-side loading delays and ensures fast first paint.
+
 ### 💡 Benefits
 - Smooth, real-time user experience.
 - Fewer loading spinners and flickers.
