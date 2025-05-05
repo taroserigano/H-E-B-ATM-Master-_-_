@@ -1,11 +1,13 @@
 # H-E-B ATM 💳  
-**Live Site:** [https://h-e-b-app-atm-master.vercel.app](https://h-e-b-app-atm-master.vercel.app)
+**Live Site:** [https://h-e-b-atm-master.vercel.app](https://h-e-b-atm-master.vercel.app)
 
-A full-stack ATM simulation app built with **Next.js 15 App Router**, **React Query**, and **MongoDB**. Users can securely log in, check balances, perform deposits/withdrawals, and view their transaction history — all with a clean, responsive UI and fast, optimized performance.
+### Use Account ID: 1111 PIN: 1234
 
 ---
 
 ## Overview
+
+A full-stack ATM simulation app built with **Next.js 15 App Router**, **React Query**, and **MongoDB**. Users can securely log in, check balances, perform deposits/withdrawals, and view their transaction history — all with a clean, responsive UI and fast, optimized performance.
 
 This app delivers **real-time responsiveness** and **high reliability**.
 
@@ -21,20 +23,33 @@ From the user’s perspective, the experience feels **instant and reliable**—s
 
 ---
 
-## Performance & Caching
+## ✅✅ Core Features
 
-Built for speed and UI fluidity:
+- Secure PIN login
+- Real-time balance display
+- Deposits and withdrawals with validation
+- Daily withdrawal limit logic
+- Optimistic UI feedback
+- Transaction history with Excel export
+- Server prefetching with fast hydration
+- Memoized UI and logic for performance
+- Cookie-based session handling
+- Middleware-protected API endpoints
 
-### React Query + Optimistic UI
+---
+
+### ✅ Performance & Caching
+
+React Query + Optimistic UI
 - Handles all API calls, caching, retries, and syncing.
-- Optimistic updates make transactions feel immediate.
+- Optimistic UI rendering make transactions feel immediate.
 - Manual cache invalidation ensures precise updates—no over-fetching.
 
-### Data Prefetching
+### ✅ Data Prefetching
 - The dashboard preloads balance on the server using `prefetchQuery` + `HydrationBoundary`.
 - Results in fast time-to-content without client-side loading delays.
 
-### Memoization for Efficiency
+### ✅ Memoization for Efficiency
 - `React.memo`: avoids unnecessary re-renders.
 - `useMemo`: caches expensive values (like formatted balances).
 - `useCallback`: memoizes stable event handlers to reduce effect triggers and renders.
@@ -43,7 +58,7 @@ These combined techniques ensure the UI remains **fast, lean, and responsive**.
 
 ---
 
-## 📊 Filtering & Pagination
+##  Filtering & Pagination
 
 ### ✅ Filtering
 Users can filter transactions (e.g. "Deposit" or "Withdraw") before viewing or exporting to Excel. This improves usability and lets users focus on relevant records.
@@ -62,7 +77,7 @@ Transaction history is paginated using React Query + backend slicing:
 
 --- 
 
-## Authentication & Session Management
+## ✅ Authentication & Session Management
 
 - Login sets an `accountId` in an **HttpOnly cookie**.
 - API routes are protected using middleware.
@@ -72,34 +87,26 @@ This avoids token storage in JavaScript and ensures consistent behavior across t
 
 ---
 
-## MongoDB Persistence
+## ✅ MongoDB Persistence
 
 - Stores account balance, PIN, and full transaction history.
 - Tracks `withdrawnToday` and `lastWithdrawDate` for enforcing daily limits.
 - Each transaction includes amount, type, date, and resulting balance.
+- Added Indexing to speed up lookup during login and API access
 
 Combines native MongoDB driver performance with schema validation via Mongoose.
 
 ---
 
-## Zod Validation
+## ✅ Zod Validation
 
 All login input is validated on the server using **Zod**, ensuring clean, typed, and secure request payloads.
 
 ---
 
-## Core Features
+## ✅ SEO Metadata Configuration (Next.js 15)
 
-- Secure PIN login
-- Real-time balance display
-- Deposits and withdrawals with validation
-- Daily withdrawal limit logic
-- Optimistic UI feedback
-- Transaction history with Excel export
-- Server prefetching with fast hydration
-- Memoized UI and logic for performance
-- Cookie-based session handling
-- Middleware-protected API endpoints
+The app leverages **Next.js 15 App Router**'s built-in metadata system for better SEO visibility and richer social previews.
 
 ---
 
@@ -116,8 +123,7 @@ All login input is validated on the server using **Zod**, ensuring clean, typed,
 ## Run Locally
 
 ```bash
-git clone https://github.com/your-username/heb-atm
+git clone the repo 
 cd heb-atm
 npm install
-echo "MONGODB_URI=your-mongo-uri" > .env.local
 npm run dev
