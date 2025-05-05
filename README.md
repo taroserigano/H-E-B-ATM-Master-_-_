@@ -1,104 +1,89 @@
 # H‑E‑B ATM App
 
-This is a full-stack ATM simulation built with **Next.js**, **React Query**, and **MongoDB**. Users can securely log in with a PIN, check their balance, deposit or withdraw funds, and view transaction history — all through a fast and responsive interface.
+A full-stack ATM simulation built with **Next.js 15**, **React Query**, and **MongoDB**. It supports PIN-based login, real-time balance, deposits, withdrawals with daily limits, and transaction history with Excel export.
 
-The app is structured with **clean architecture**, **secure session handling**, and **real-world performance techniques** that scale.
+Built with performance, clarity, and production-readiness in mind—using secure session handling, smart caching, optimistic rendering, and React best practices.
+
+---
 
 ## Live Demo
 
 🔗 [https://h-e-b-app-atm-master.vercel.app](https://h-e-b-app-atm-master.vercel.app)
 
-Use one of the demo accounts listed below to explore the app.
+Use one of the demo accounts below to explore the app.
 
 ---
 
-## ⚙️ Key Technologies & Benefits
+## Performance & Caching
 
-### ✅ Next.js 15 (App Router)
-- Server components handle data loading early — reducing flicker and improving time-to-interaction.
-- File-based API routes simplify full-stack logic.
-- Uses `cookies()` and `Response.json()` for modern session management.
+This app is tuned for responsiveness and speed using multiple strategies:
 
-💡 *Benefit:* Streamlined backend/frontend integration and fast data access directly on the server.
-
----
-## ⚡ Performance & Caching
-
-This app is tuned for **speed and responsiveness** through a combination of:
-
-
-
-## ⚛️ React Query — Data Fetching, Caching & Optimistic UI
-
-React Query powers efficient and reliable data handling throughout the app:
-
-- 🔄 **Automatic Caching** – Caches server responses and reuses them across components to minimize redundant API calls.
-- 🔁 **Background Syncing** – Keeps data fresh by silently refetching in the background.
-- ⚡ **Instant Updates** – Supports optimistic UI, so actions like deposits and withdrawals show up immediately in the interface.
-- 🛡️ **Rollback Safety** – Automatically reverts UI changes if the server request fails.
-- 🔗 **State Sharing** – Shares and syncs data across views and tabs out of the box.
+### React Query + Optimistic UI
+- Handles all API caching, syncing, and retries.
+- **Optimistic updates**: balance and transaction list update instantly while awaiting confirmation, with rollback if needed.
+- Cache invalidation is scoped to the impacted queries—no redundant re-fetching.
 
 ### Data Prefetching with Server Components
-- On dashboard page load, balance data is preloaded on the server using `prefetchQuery` + `HydrationBoundary`.
+- On page load, balance data is preloaded on the server using `prefetchQuery` + `HydrationBoundary`.
 - This avoids client-side loading delays and ensures fast first paint.
 
-### 💡 Benefits
-- Smooth, real-time user experience.
-- Fewer loading spinners and flickers.
-- Reduced server load and faster perceived performance.
-- Improved reliability with built-in error recovery.
+### Memoization for Stability
+- `React.memo`: avoids re-renders for static components.
+- `useMemo`: caches stable values like formatted data and query functions.
+- `useCallback`: keeps event handlers like `handleSubmit` stable and avoids triggering unnecessary effects.
 
-
----
-
-### 🧠 Memoization Techniques (React.memo + useMemo + useCallback)
-
-- `**React.memo**`: prevents re-renders for stable components.
-- `**useMemo**`: avoids recalculating values like formatted balances or context values.
-- `**useCallback**`: stabilizes handlers like `handleSubmit`, reducing effect triggers and child re-renders.
-
-**Why it matters**: Keeps UI fast and lean — only updates what’s necessary.
----
-
-### 🧾 MongoDB for State Persistence
-- Stores balances, PINs, and full transaction history.
-- Tracks daily withdrawals to enforce limits.
-- Native driver + Mongoose used where most effective.
-
-💡 *Benefit:* Flexible schema and efficient updates for transactional data.
+Together, these techniques reduce client-side rendering cost, improve perceived performance, and make the app feel responsive under real usage conditions.
 
 ---
 
-### 🔐 HttpOnly Cookie Sessions
-- Login sets a secure session cookie.
-- Middleware blocks unauthenticated API calls.
-- Logout clears session via `Set-Cookie`.
+## Authentication & Session Management
 
-💡 *Benefit:* More secure than localStorage and works across tabs and reloads.
-
----
-
-### ✅ Zod Validation
-- Validates login data before DB queries.
-- Provides structured error feedback instantly.
-
-💡 *Benefit:* Safer and more reliable input handling with no extra boilerplate.
+- Auth is handled via **HttpOnly cookies** for security and reliability.
+- Middleware enforces auth across all API routes.
+- Session state persists across tabs and refreshes, and logout clears the session server-side.
 
 ---
 
-## 💡 Features
+## MongoDB Persistence
 
-- Login with PIN (test accounts below)
-- View real-time balance
-- Deposit & withdraw with validation
+- Stores user account data, transaction history, and daily withdrawal tracking.
+- Combines the native MongoDB driver for performance with Mongoose for schema validation.
+- Each transaction captures amount, timestamp, and resulting balance for auditability.
+
+---
+
+## Zod Validation
+
+- Login input is validated server-side using **Zod**, ensuring clean, typed, and secure input handling.
+
+---
+
+## Core Features
+
+- Secure PIN-based login
+- Real-time balance view
+- Deposits and withdrawals
 - Daily withdrawal limits
-- Export transaction history to Excel sheets
 - Optimistic UI updates
-- Protected routes & secure session handling
+- Excel transaction export
+- Prefetched server data for fast hydration
+- Memoized components and logic
+- Cookie-based session auth
+- Route-level protection middleware
 
 ---
 
-## 🧪 Run Locally
+## Demo Accounts
+
+| Account ID | PIN  |
+|------------|------|
+| 1111       | 1234  |
+| 2222       | 1234  |
+| 3333       | 1234  |
+
+---
+
+## Run Locally
 
 ```bash
 git clone https://github.com/your-username/heb-atm
