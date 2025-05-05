@@ -1,6 +1,6 @@
 # H‑E‑B ATM App
 
-A full-stack ATM simulation built with **Next.js 15**, **React Query**, and **MongoDB**. It supports PIN-based login, real-time balance, deposits, withdrawals with daily limits, and transaction history with Excel export.
+A full-stack ATM simulation built with **Next.js 15**, **React Query**, **Context API**, and **MongoDB**. It supports PIN-based login, real-time balance, deposits, withdrawals with daily limits, and transaction history with Excel export.
 
 ---
 
