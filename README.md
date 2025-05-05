@@ -42,7 +42,7 @@ From the user’s perspective, the experience feels **instant and reliable**—s
 
 React Query + Optimistic UI
 - Handles all API calls, caching, retries, and syncing.
-- Optimistic updates make transactions feel immediate.
+- Optimistic UI rendering make transactions feel immediate.
 - Manual cache invalidation ensures precise updates—no over-fetching.
 
 ### ✅ Data Prefetching
@@ -58,7 +58,7 @@ These combined techniques ensure the UI remains **fast, lean, and responsive**.
 
 ---
 
-## 📊 Filtering & Pagination
+##  Filtering & Pagination
 
 ### ✅ Filtering
 Users can filter transactions (e.g. "Deposit" or "Withdraw") before viewing or exporting to Excel. This improves usability and lets users focus on relevant records.
