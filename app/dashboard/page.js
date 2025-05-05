@@ -20,6 +20,9 @@ export const metadata = {
     description:
       "Securely manage your ATM account with deposits, withdrawals, and history.",
   },
+  icons: {
+    icon: "/heb-logo.png", // ✅ this line sets the favicon site-wide
+  },
 };
 
 // 🧠 Dynamically import the Client Component with a loading fallback
