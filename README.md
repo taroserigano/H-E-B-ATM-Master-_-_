@@ -104,11 +104,9 @@ All login input is validated on the server using **Zod**, ensuring clean, typed,
 
 ---
 
-## 📘 SEO Metadata Configuration (Next.js 15)
+## SEO Metadata Configuration (Next.js 15)
 
-The app leverages **Next.js 15 App Router**'s built-in metadata system for better search engine visibility and richer social previews.
-
-Each page defines structured metadata, including:
+The app leverages **Next.js 15 App Router**'s built-in metadata system for better SEO visibility and richer social previews.
 
 ---
 
