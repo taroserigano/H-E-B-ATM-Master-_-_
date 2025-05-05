@@ -1,21 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import * as XLSX from "xlsx";
 
 export default function TransactionHistory() {
   const [visible, setVisible] = useState(false);
+  const [filterType, setFilterType] = useState("all");
+  const [exportLimit, setExportLimit] = useState("100");
 
-  const {
-    data: displayData,
-    isLoading,
-    isError,
-  } = useQuery({
+  const { data, isLoading, isError } = useQuery({
     queryKey: ["accountTransactions"],
     queryFn: async () => {
-      const { data } = await axios.get("/api/transactions?limit=10", {
+      const { data } = await axios.get("/api/transactions?limit=1000", {
         withCredentials: true,
       });
       return data;
@@ -24,53 +22,76 @@ export default function TransactionHistory() {
     refetchOnWindowFocus: true,
   });
 
+  const limitValue =
+    exportLimit === "all" ? Infinity : parseInt(exportLimit, 10);
+
+  const filteredTransactions = useMemo(() => {
+    if (!data?.transactions) return [];
+
+    return data.transactions
+      .filter((tx) => (filterType === "all" ? true : tx.type === filterType))
+      .slice(0, limitValue);
+  }, [data, filterType, limitValue]);
+
   const exportToExcel = async () => {
-    try {
-      const { data } = await axios.get("/api/transactions?limit=100", {
-        withCredentials: true,
-      });
+    if (!filteredTransactions.length) return;
 
-      if (!data?.transactions?.length) return;
+    const rows = filteredTransactions.map((tx) => ({
+      Type: tx.type,
+      Amount: tx.amount,
+      "Balance After": tx.balanceAfter,
+      Date: new Date(tx.date).toLocaleString(),
+    }));
 
-      const rows = data.transactions.map((tx) => ({
-        Type: tx.type,
-        Amount: tx.amount,
-        "Balance After": tx.balanceAfter,
-        Date: new Date(tx.date).toLocaleString(),
-      }));
-
-      const worksheet = XLSX.utils.json_to_sheet(rows);
-      const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, "Transactions");
-      XLSX.writeFile(workbook, "transactions.xlsx");
-    } catch (err) {
-      console.error("Export error:", err);
-      alert("Failed to export transactions.");
-    }
+    const worksheet = XLSX.utils.json_to_sheet(rows);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Transactions");
+    XLSX.writeFile(workbook, "transactions.xlsx");
   };
 
   return (
     <div className="mt-6">
-      {/* Header */}
-      <div className="flex justify-between items-center mb-2 flex-wrap gap-2">
+      <div className="flex flex-wrap justify-between items-center gap-2 mb-2">
         <button
           onClick={() => setVisible((v) => !v)}
           className="bg-gray-200 hover:bg-gray-300 text-gray-800 text-sm font-semibold py-1 px-3 rounded shadow transition"
         >
-          {visible ? "Hide" : "Show"} Last 10 Transactions
+          {visible ? "Hide" : "Show"} Transactions
         </button>
 
-        {displayData?.transactions?.length > 0 && visible && (
-          <button
-            onClick={exportToExcel}
-            className="bg-green-600 hover:bg-green-700 text-white text-sm font-semibold py-1 px-3 rounded shadow transition"
-          >
-            Export to Excel
-          </button>
+        {visible && (
+          <div className="flex flex-wrap gap-2 items-center">
+            <select
+              value={filterType}
+              onChange={(e) => setFilterType(e.target.value)}
+              className="text-sm border border-gray-300 p-1 rounded"
+            >
+              <option value="all">All Types</option>
+              <option value="deposit">Deposits</option>
+              <option value="withdraw">Withdrawals</option>
+            </select>
+
+            <select
+              value={exportLimit}
+              onChange={(e) => setExportLimit(e.target.value)}
+              className="text-sm border border-gray-300 p-1 rounded"
+            >
+              <option value="10">10</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+              <option value="all">All</option>
+            </select>
+
+            <button
+              onClick={exportToExcel}
+              className="bg-green-600 hover:bg-green-700 text-white text-sm font-semibold py-1 px-3 rounded shadow transition"
+            >
+              Export to Excel
+            </button>
+          </div>
         )}
       </div>
 
-      {/* Scroll container */}
       <div
         className={`transition-all duration-300 overflow-hidden ${
           visible ? "max-h-[300px] opacity-100" : "max-h-0 opacity-0"
@@ -85,13 +106,13 @@ export default function TransactionHistory() {
             <p className="text-center text-sm text-red-600">
               Error loading transactions
             </p>
-          ) : displayData?.transactions?.length === 0 ? (
+          ) : filteredTransactions.length === 0 ? (
             <p className="text-center text-sm text-gray-400">
-              No transactions yet.
+              No matching transactions.
             </p>
           ) : (
             <ul className="space-y-2">
-              {displayData.transactions.map((tx, index) => {
+              {filteredTransactions.map((tx, index) => {
                 const dateObj = new Date(tx.date);
                 const dateStr = dateObj.toLocaleDateString();
                 const timeStr = dateObj.toLocaleTimeString([], {

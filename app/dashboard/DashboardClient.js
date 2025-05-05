@@ -46,7 +46,7 @@ export default function DashboardClient() {
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
       <div
-        className="bg-white p-6 rounded-xl shadow-xl w-full max-w-xl border border-gray-200"
+        className="bg-white p-8 rounded-xl shadow-xl w-full max-w-4xl border border-gray-200"
         style={{
           height: "940px",
           overflow: "hidden",

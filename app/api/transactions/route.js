@@ -1,6 +1,7 @@
+// ✅ Backend update: /app/api/transactions/route.js
+import { cookies } from "next/headers";
 import { connectToDB } from "@/lib/mongoose";
 import Account from "@/models/Account";
-import { cookies } from "next/headers";
 
 export async function GET(req) {
   try {
@@ -19,13 +20,21 @@ export async function GET(req) {
     }
 
     const url = new URL(req.url);
+    const page = parseInt(url.searchParams.get("page")) || 1;
     const limit = parseInt(url.searchParams.get("limit")) || 10;
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
 
-    const transactions = account.transactions.slice(-limit).reverse();
+    const transactions = account.transactions
+      .slice()
+      .reverse()
+      .slice(startIndex, endIndex);
 
-    return Response.json({ transactions });
+    const total = account.transactions.length;
+
+    return Response.json({ transactions, total });
   } catch (err) {
-    console.error("Transaction history error:", err);
+    console.error("Pagination error:", err);
     return Response.json({ error: "Server error" }, { status: 500 });
   }
 }
