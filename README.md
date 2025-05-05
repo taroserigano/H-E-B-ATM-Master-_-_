@@ -1,13 +1,13 @@
 # H-E-B ATM 💳  
 **Live Site:** [https://h-e-b-atm-master.vercel.app](https://h-e-b-atm-master.vercel.app)
 
-### Use AccountId: 1111 PIN: 1234
-
-A full-stack ATM simulation app built with **Next.js 15 App Router**, **React Query**, and **MongoDB**. Users can securely log in, check balances, perform deposits/withdrawals, and view their transaction history — all with a clean, responsive UI and fast, optimized performance.
+### Use Account ID: 1111 PIN: 1234
 
 ---
 
 ## Overview
+
+A full-stack ATM simulation app built with **Next.js 15 App Router**, **React Query**, and **MongoDB**. Users can securely log in, check balances, perform deposits/withdrawals, and view their transaction history — all with a clean, responsive UI and fast, optimized performance.
 
 This app delivers **real-time responsiveness** and **high reliability**.
 
@@ -125,8 +125,7 @@ The app leverages **Next.js 15 App Router**'s built-in metadata system for bette
 ## Run Locally
 
 ```bash
-git clone https://github.com/your-username/heb-atm
+git clone the repo 
 cd heb-atm
 npm install
-echo "MONGODB_URI=your-mongo-uri" > .env.local
 npm run dev
