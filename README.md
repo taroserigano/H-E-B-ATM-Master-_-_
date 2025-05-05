@@ -38,11 +38,9 @@ From the user’s perspective, the experience feels **instant and reliable**—s
 
 ---
 
-## ✅ Performance & Caching
+### ✅ Performance & Caching
 
-Built for speed and UI fluidity:
-
-### React Query + Optimistic UI
+React Query + Optimistic UI
 - Handles all API calls, caching, retries, and syncing.
 - Optimistic updates make transactions feel immediate.
 - Manual cache invalidation ensures precise updates—no over-fetching.
