@@ -1,6 +1,7 @@
-# H‑E‑B ATM App
+# H-E-B ATM 💳  
+**Live Site:** [https://h-e-b-app-atm-master.vercel.app](https://h-e-b-app-atm-master.vercel.app)
 
-A full-stack ATM simulation built with **Next.js 15**, **React Query**, **Context API**, and **MongoDB**. It supports PIN-based login, real-time balance, deposits, withdrawals with daily limits, and transaction history with Excel export.
+A full-stack ATM simulation app built with **Next.js 15 App Router**, **React Query**, and **MongoDB**. Users can securely log in, check balances, perform deposits/withdrawals, and view their transaction history — all with a clean, responsive UI and fast, optimized performance.
 
 ---
 
@@ -17,14 +18,6 @@ All data is automatically **cached and synced** through React Query. This ensure
 - Accurate, up-to-date views across all components
 
 From the user’s perspective, the experience feels **instant and reliable**—similar to a real banking application.
-
----
-
-## Live Demo
-
-🔗 [https://h-e-b-app-atm-master.vercel.app](https://h-e-b-app-atm-master.vercel.app)
-
-Use one of the demo accounts below to explore the app.
 
 ---
 
@@ -62,6 +55,12 @@ Transaction history is paginated using React Query + backend slicing:
 - Prevents loading large datasets all at once, enhancing performance.
 
 ---
+
+### ✅ Virtualized Rendering List with `react-window`
+- Only renders visible rows in the transaction list to optimize performance
+- Keeps the UI responsive even with **hundreds of transactions** to give scalability
+
+--- 
 
 ## Authentication & Session Management
 
