@@ -12,7 +12,7 @@ export const metadata = {
   },
   description:
     "Securely manage your H-E-B ATM account. View balance, deposit, and withdraw.",
-  metadataBase: new URL("https://h-e-b-app-atm-master.vercel.app"),
+  metadataBase: "",
   icons: {
     icon: "/heb.png",
   },
@@ -20,7 +20,7 @@ export const metadata = {
     title: "H-E-B ATM",
     description:
       "ATM dashboard with secure transactions and real-time balance.",
-    url: "https://h-e-b-app-atm-master.vercel.app",
+    url: "",
     siteName: "H-E-B ATM",
     locale: "en_US",
     type: "website",

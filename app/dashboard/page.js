@@ -6,7 +6,7 @@ export const metadata = {
   openGraph: {
     title: "Dashboard | H-E-B ATM",
     description: "Your secure H-E-B ATM dashboard.",
-    url: "https://h-e-b-app-atm-master.vercel.app/dashboard",
+    url: "",
     siteName: "H-E-B ATM",
     type: "website",
   },
