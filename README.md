@@ -16,6 +16,9 @@ The app is structured with **clean architecture**, **secure session handling**, 
 💡 *Benefit:* Streamlined backend/frontend integration and fast data access directly on the server.
 
 ---
+## ⚡ Performance & Caching
+
+This app is tuned for **speed and responsiveness** through a combination of:
 
 ## ⚛️ React Query — Data Fetching, Caching & Optimistic UI
 
@@ -36,12 +39,13 @@ React Query powers efficient and reliable data handling throughout the app:
 
 ---
 
-### 🧠 Memoization for Performance
-- `useMemo()` prevents re-renders in context providers, queries, and computed values.
-- Ensures stable function identities and avoids excess computation.
+### 🧠 Memoization Techniques (React.memo + useMemo + useCallback)
 
-💡 *Benefit:* Keeps UI fast and responsive, even with multiple data-bound components.
+- `**React.memo**`: prevents re-renders for stable components.
+- `**useMemo**`: avoids recalculating values like formatted balances or context values.
+- `**useCallback**`: stabilizes handlers like `handleSubmit`, reducing effect triggers and child re-renders.
 
+**Why it matters**: Keeps UI fast and lean — only updates what’s necessary.
 ---
 
 ### 🧾 MongoDB for State Persistence
