@@ -20,6 +20,8 @@ The app is structured with **clean architecture**, **secure session handling**, 
 
 This app is tuned for **speed and responsiveness** through a combination of:
 
+
+
 ## ⚛️ React Query — Data Fetching, Caching & Optimistic UI
 
 React Query powers efficient and reliable data handling throughout the app:
