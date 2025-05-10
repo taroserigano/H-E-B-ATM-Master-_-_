@@ -1,4 +1,4 @@
-// 🧹 REMOVE balance from context state entirely
+// REMOVE balance from context state entirely
 
 export const initialState = {
   error: null,
