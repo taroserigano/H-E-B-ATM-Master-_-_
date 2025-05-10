@@ -2,13 +2,13 @@
 
 import { createContext, useContext, useMemo, useState } from "react";
 
-// 🧠 Default value is null for strict checking
+// Default value is null for strict checking
 const SessionContext = createContext(null);
 
 export function SessionProvider({ children }) {
   const [accountId, setAccountId] = useState(null);
 
-  // ✅ Memoize context value to avoid re-renders
+  // Memoize context value to avoid re-renders
   const contextValue = useMemo(
     () => ({ accountId, setAccountId }),
     [accountId]
