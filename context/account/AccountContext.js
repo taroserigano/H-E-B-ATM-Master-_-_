@@ -9,7 +9,7 @@ const AccountContext = createContext(null);
 export function AccountProvider({ children }) {
   const [state, dispatch] = useReducer(accountReducer, initialState);
 
-  // ✅ Stable context value
+  // Stable context value
   const contextValue = useMemo(() => ({ state, dispatch }), [state]);
 
   return (
@@ -19,7 +19,7 @@ export function AccountProvider({ children }) {
   );
 }
 
-// ✅ Custom hook with guard
+// Custom hook with guard
 export function useAccount() {
   const context = useContext(AccountContext);
   if (!context) {
