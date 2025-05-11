@@ -127,3 +127,17 @@ git clone the repo
 cd heb-atm
 npm install
 npm run dev
+
+Environment Variables
+To run the app, a .env file is required in the root directory of the project.
+
+If it hasn’t been provided already, please contact Karen or Jamie to obtain the
+correct .env file.
+
+Once received, please create a new file by .env at the root of the project. 
+
+in side .env file, 
+MONGODB_URI=<mongodb-atlas-uri>
+
+Please make sure the .env file is saved in the root directory — alongside package.json.
+
