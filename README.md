@@ -1,3 +1,45 @@
+Overview
+Before your interview, we would like for you to complete the following programming
+assignment.
+We will use this exercise to get a sense of your problem solving skills, your decomposition skills,
+and the way that you approach refactoring.
+Parameters
+• Complete the requirement as described below
+• This exercise is conceptual in nature and does not need to be a fully finished product
+• Be prepared to speak about any extra work that you would’ve done if you had more time
+at an onsite.
+• Your solution will be discussed during the interview.
+• Use whatever language and framework you prefer. (We typically use
+React/Javascript/Typescript).
+Problem Description
+PART I
+Provide a basic ATM (Automated Teller Machine) implementation. At a minimum, this program
+should offer the following features:
+• Enter a PIN to identify a unique customer
+• Query and show the current account balance
+• Simulate the withdrawal of cash
+• Simulate a deposit
+• A daily withdrawal limit
+PART II (to the best of your ability)
+Define an HTTP REST API in [Java/Node.js/Python] for the service layer to support the above
+implementation.
+- At a minimum, can you provide the API specification for the API layer?
+- Can you implement at least one of the API methods from your specification?
+- Can you set up a persistent data store?
+Submit the following
+• Provide complete steps to compile and run your project.
+• The full source of your solution in a Github, Bitbucket or Gitlab repo.
+• If brought in for an interview, we will:
+o Ask you to describe your design and implementation decisions.
+
+o Ask you to talk about testing scenarios and considerations for real-world
+deployment.
+o Ask you about the next set of features that you would want to implement or any
+improvements on your current implementation.
+
+• For ease of sharing we recommend using codesandbox.io, but it’s not required.
+
+
 # H-E-B ATM 💳  
 **Live Site:** [https://h-e-b-atm-master.vercel.app](https://h-e-b-atm-master.vercel.app)
 
